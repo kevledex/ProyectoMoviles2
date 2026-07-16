@@ -1,15 +1,38 @@
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, View, TextInput, Button } from 'react-native'
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, View, TextInput, Button, Alert } from 'react-native'
 import { globalStyles } from '../styles/EstilosGlobales'
 import { useState } from 'react'
+import { supabase } from '../supabase/config'
 
 
 export default function IniciarSesionScreen({ navigation }: any) {
 
-  const [id, setId] = useState('')
-  const [usuario, setUsuario] = useState('')
-  const [email, setEmail] = useState('')
-  const [contraseña, setContraseña] = useState('')
-  
+    const [id, setId] = useState('')
+    const [usuario, setUsuario] = useState('')
+    const [email, setEmail] = useState('')
+    const [contrasenia, setContrasenia] = useState('')
+
+    async function iniciarSesion() {
+        if (email.trim() === '' || contrasenia.trim() === '') {
+            Alert.alert('Campos incompletos', 'Ingrese el correo y la contraseña')
+            return
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email.trim().toLowerCase(),
+            password: contrasenia,
+        })
+
+        if (error) {
+            console.log('ERROR DE INICIO DE SESIÓN:', error)
+            Alert.alert('Error al iniciar sesión', error.message)
+            return
+        }
+
+        if (data.session) {
+            navigation.replace('Jugar')
+        }
+    }
+
 
 
     return (
@@ -19,36 +42,29 @@ export default function IniciarSesionScreen({ navigation }: any) {
 
                 <Text style={styles.titulo}>INICIAR SESIÓN</Text>
 
-                  <TextInput 
-                    style={styles.input}
-                    placeholder="USUARIO"
-                    value={usuario}
-                    onChangeText={setUsuario}
-                 />
-
-                  <TextInput 
+                <TextInput
                     style={styles.input}
                     placeholder="EMAIL"
                     value={email}
                     onChangeText={setEmail}
-                 />
+                />
 
-                  <TextInput 
+                <TextInput
                     style={styles.input}
                     placeholder="CONTRASEÑA"
-                    value={contraseña}
-                    onChangeText={setContraseña}
+                    value={contrasenia}
+                    onChangeText={setContrasenia}
                     secureTextEntry
-                 />
+                />
 
                 <View style={styles.filaBotones}>
                     <TouchableOpacity style={styles.boton}
-                    onPress={() => navigation.navigate('InicioSecion')}>
+                        onPress={iniciarSesion}>
                         <Text style={styles.txtMenu}>JUGAR</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.boton}
-                    onPress={() => navigation.navigate('InicioSecion')}>
+                        onPress={() => navigation.navigate('InicioSecion')}>
                         <Text style={styles.txtMenu}>SALIR</Text>
                     </TouchableOpacity>
                 </View>
@@ -63,8 +79,8 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 80,
     },
+
     titulo: {
         color: '#ffffff',
         fontSize: 40,
@@ -93,11 +109,11 @@ const styles = StyleSheet.create({
     },
 
     input: {
-    borderWidth: 1,
-    borderColor: '#777',
-    padding: 8,
-    margin: 10,
-    width: 200,
-    backgroundColor: 'white',
-  },
+        borderWidth: 1,
+        borderColor: '#777',
+        padding: 8,
+        margin: 8,
+        width: 175,
+        backgroundColor: 'white',
+    },
 })

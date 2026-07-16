@@ -1,4 +1,4 @@
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, View, TextInput, Button } from 'react-native'
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, View, TextInput, Button, Alert } from 'react-native'
 import { globalStyles } from '../styles/EstilosGlobales'
 import { useState } from 'react'
 import { supabase } from '../supabase/config'
@@ -6,21 +6,28 @@ import { supabase } from '../supabase/config'
 
 export default function RegistroScreen({ navigation }: any) {
 
-    const [id, setId] = useState('')
     const [usuario, setUsuario] = useState('')
     const [email, setEmail] = useState('')
     const [contrasenia, setContrasenia] = useState('')
 
     async function registrarUsuarios() {
-        const { error } = await supabase
-            .from('usuarios')
-            .insert({
-                id: id,
-                usuario: usuario,
-                email: email,
-                contrasenia: contrasenia,
-            })
-        console.log(error);
+        const { error } = await supabase.auth.signUp({
+            email: email.trim().toLowerCase(),
+            password: contrasenia,
+            options: {
+                data: {
+                    usuario: usuario.trim(),
+                },
+            },
+        })
+
+        if (error) {
+            Alert.alert('Error', error.message)
+            return
+        }
+
+        Alert.alert('Registro exitoso', 'Revisa tu correo electrónico')
+        navigation.navigate('InicioSecion')
     }
 
 
@@ -30,13 +37,6 @@ export default function RegistroScreen({ navigation }: any) {
             <View style={styles.contenedorMenu}>
 
                 <Text style={styles.titulo}>REGISTRATE</Text>
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="ID"
-                    value={id}
-                    onChangeText={setId}
-                />
 
                 <TextInput
                     style={styles.input}
@@ -62,10 +62,7 @@ export default function RegistroScreen({ navigation }: any) {
 
                 <View style={styles.filaBotones}>
                     <TouchableOpacity style={styles.boton}
-                        onPress={async () => {
-                            await registrarUsuarios()
-                            navigation.navigate('Menu')
-                        }}>
+                        onPress={registrarUsuarios}>
                         <Text style={styles.txtMenu}>REGISTRAR</Text>
                     </TouchableOpacity>
 
@@ -84,7 +81,7 @@ const styles = StyleSheet.create({
     contenedorMenu: {
         flex: 1,
         justifyContent: 'space-between',
-        alignItems: 'center',       
+        alignItems: 'center',
     },
 
     titulo: {

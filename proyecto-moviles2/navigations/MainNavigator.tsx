@@ -3,6 +3,7 @@ import MenuScreen from '../screens/MenuScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import RegistroScreen from '../screens/RegistroScreen';
 import IniciarSesionScreen from '../screens/IniciarSesionScreen';
+import JuegoScreen from '../screens/JuegoScreen';
 
 const Tab = createNativeStackNavigator();
 const Stack = createNativeStackNavigator();
@@ -23,6 +24,7 @@ function JuegoTabs() {
 function MyStack() {
     return (
         <Stack.Navigator initialRouteName="Menu">
+
             <Stack.Screen name="Menu" component={MenuScreen}
                 options={{ title: "Lobby", headerTransparent: true, headerTintColor: '#ffffff' }}
             />
@@ -39,13 +41,17 @@ function MyStack() {
                 options={{ title: "Registrar perfil", headerShown: false, }}
             />
 
+            <Stack.Screen
+                name="Jugar"
+                component={JuegoScreen}
+                options={{ title: "Jugar", headerShown: false, }}
+            />
+
             <Stack.Screen name="Juego" component={JuegoTabs}
                 options={{ headerShown: false, }}
             />
 
-            <Stack.Screen name="Resultados" component={MenuScreen}
-                options={{ headerShown: false }}
-            />
+            
         </Stack.Navigator>
     );
 }
