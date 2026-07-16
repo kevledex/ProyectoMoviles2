@@ -1,7 +1,7 @@
 import { ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { globalStyles } from '../styles/EstilosGlobales'
 
-export default function MenuScreen() {
+export default function MenuScreen({ navigation }: any) {
     return (
         <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
 
@@ -10,11 +10,13 @@ export default function MenuScreen() {
                 <Text style={styles.titulo}>AMONG US!</Text>
 
                 <View style={styles.filaBotones}>
-                    <TouchableOpacity style={styles.boton}>
+                    <TouchableOpacity style={styles.boton}
+                    onPress={() => navigation.navigate('InicioSecion')}>
                         <Text style={styles.txtMenu}>JUGAR</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.boton}>
+                    <TouchableOpacity style={styles.boton}
+                    onPress={() => navigation.navigate('Registrar')}>
                         <Text style={styles.txtMenu}>PERFIL</Text>
                     </TouchableOpacity>
                 </View>

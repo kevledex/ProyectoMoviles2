@@ -1,6 +1,8 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MenuScreen from '../screens/MenuScreen';
 import { NavigationContainer } from '@react-navigation/native';
+import RegistroScreen from '../screens/RegistroScreen';
+import IniciarSesionScreen from '../screens/IniciarSesionScreen';
 
 const Tab = createNativeStackNavigator();
 const Stack = createNativeStackNavigator();
@@ -25,8 +27,16 @@ function MyStack() {
                 options={{ title: "Lobby", headerTransparent: true, headerTintColor: '#ffffff' }}
             />
 
-            <Stack.Screen name="Perfil" component={MenuScreen}
-                options={{ title: "Mi Perfil" }}
+             <Stack.Screen
+                name="InicioSecion"
+                component={IniciarSesionScreen}
+                options={{ title: "Iniciar sesión", headerShown: false, }}
+            />
+
+            <Stack.Screen
+                name="Registrar"
+                component={RegistroScreen}
+                options={{ title: "Registrar perfil", headerShown: false, }}
             />
 
             <Stack.Screen name="Juego" component={JuegoTabs}
