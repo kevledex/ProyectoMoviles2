@@ -1,45 +1,59 @@
-import { ImageBackground, StyleSheet, Text, Touchable, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { globalStyles } from '../styles/EstilosGlobales'
 
 export default function MenuScreen() {
     return (
         <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
 
-            <View style={styles.fila}>
+            <View style={styles.contenedorMenu}>
 
-                <Text style={styles.txtMenu}>AMONG US!</Text>
+                <Text style={styles.titulo}>AMONG US!</Text>
 
-                <TouchableOpacity style={styles.boton}>
-                    <Text style={styles.txtMenu}>JUGAR</Text>
-                </TouchableOpacity>
+                <View style={styles.filaBotones}>
+                    <TouchableOpacity style={styles.boton}>
+                        <Text style={styles.txtMenu}>JUGAR</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity style={styles.boton}>
-                    <Text style={styles.txtMenu}>PERFIL</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={styles.boton}>
+                        <Text style={styles.txtMenu}>PERFIL</Text>
+                    </TouchableOpacity>
+                </View>
+
             </View>
         </ImageBackground>
     )
 }
 
 const styles = StyleSheet.create({
-    fila: {
-        flexDirection: 'row',
+    contenedorMenu: {
+        flex: 1,
         justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 80,
+    },
+    titulo: {
+        color: '#ffffff',
+        fontSize: 40,
+        fontWeight: 'bold',
+        marginTop: 20,
+    },
+    filaBotones: {
+        flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
     },
     txtMenu: {
-        color: '#ffff',
-        justifyContent: 'center',
-        fontSize: 25
+        color: '#ffffff',
+        fontSize: 20,
+        fontWeight: '600',
     },
     boton: {
-        borderColor: '#ffff',
+        borderColor: '#ffffff',
         borderWidth: 2,
-        width: 150,
+        width: 140,
         height: 55,
         borderRadius: 10,
-        margin: 15,
+        margin: 10,
         justifyContent: 'center',
         alignItems: 'center'
     }
