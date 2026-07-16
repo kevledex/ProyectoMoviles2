@@ -33,9 +33,9 @@ const styles = StyleSheet.create({
     },
     titulo: {
         color: '#ffffff',
-        fontSize: 40,
-        fontWeight: 'bold',
+        fontSize: 90,
         marginTop: 20,
+        fontFamily: 'AmongUs'
     },
     filaBotones: {
         flexDirection: 'row',
@@ -44,8 +44,8 @@ const styles = StyleSheet.create({
     },
     txtMenu: {
         color: '#ffffff',
-        fontSize: 20,
-        fontWeight: '600',
+        fontSize: 40,
+        fontFamily: 'AmongUs'
     },
     boton: {
         borderColor: '#ffffff',
