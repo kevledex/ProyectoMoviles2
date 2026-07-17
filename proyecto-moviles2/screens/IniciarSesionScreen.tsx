@@ -29,7 +29,7 @@ export default function IniciarSesionScreen({ navigation }: any) {
         }
 
         if (data.session) {
-            navigation.replace('Jugar')
+            navigation.replace('Menu')
         }
     }
 
@@ -59,7 +59,7 @@ export default function IniciarSesionScreen({ navigation }: any) {
                     <View style={styles.filaBotones}>
                         <TouchableOpacity style={styles.boton}
                             onPress={iniciarSesion}>
-                            <Text style={styles.txtMenu}>JUGAR</Text>
+                            <Text style={styles.txtMenu}>LOGIN</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.boton}
