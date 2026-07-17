@@ -13,7 +13,7 @@ export default function MenuScreen({ navigation }: any) {
 
                     <View style={styles.filaBotones}>
                         <TouchableOpacity style={styles.boton}
-                            onPress={() => navigation.navigate('Jugar')}>
+                            onPress={() => navigation.navigate('InicioSecion')}>
                             <Text style={styles.txtMenu}>JUGAR</Text>
                         </TouchableOpacity>
 
@@ -24,8 +24,8 @@ export default function MenuScreen({ navigation }: any) {
                     </View>
 
                     <TouchableOpacity style={styles.boton}
-                        onPress={() => navigation.navigate('InicioSecion')}>
-                        <Text style={styles.txtMenu}>Login</Text>
+                        onPress={() => navigation.navigate('Registrar')}>
+                        <Text style={styles.txtMenu}>Registrarse </Text>
                     </TouchableOpacity>
 
                 </View>

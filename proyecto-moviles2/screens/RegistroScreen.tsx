@@ -27,7 +27,7 @@ export default function RegistroScreen({ navigation }: any) {
         }
 
         Alert.alert('Registro exitoso', 'Revisa tu correo electrónico')
-        navigation.navigate('InicioSecion')
+        navigation.navigate('Menu')
     }
 
 
@@ -60,24 +60,15 @@ export default function RegistroScreen({ navigation }: any) {
                     secureTextEntry
                 />
 
-                <View style={styles.contenedorAcciones}>
-                    <View style={styles.filaBotones}>
-                        <TouchableOpacity style={styles.boton}
-                            onPress={registrarUsuarios}>
-                            <Text style={styles.txtMenu}>REGISTRAR</Text>
-                        </TouchableOpacity>
+                <View style={styles.filaBotones}>
+                    <TouchableOpacity style={styles.boton}
+                        onPress={registrarUsuarios}>
+                        <Text style={styles.txtMenu}>REGISTRAR</Text>
+                    </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.boton}
-                            onPress={() => navigation.navigate('Menu')}>
-                            <Text style={styles.txtMenu}>SALIR</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <TouchableOpacity
-                        style={styles.enlaceLogin}
-                        onPress={() => navigation.navigate('InicioSecion')}
-                    >
-                        <Text style={styles.txtLogin}>¿YA TIENES CUENTA? INICIA SESIÓN</Text>
+                    <TouchableOpacity style={styles.boton}
+                        onPress={() => navigation.navigate('Menu')}>
+                        <Text style={styles.txtMenu}>SALIR</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -95,13 +86,9 @@ const styles = StyleSheet.create({
 
     titulo: {
         color: '#ffffff',
-        fontSize: 50,
-        fontFamily: 'AmongUs',
+        fontSize: 40,
+        fontWeight: 'bold',
         marginTop: 20,
-    },
-    contenedorAcciones: {
-        alignItems: 'center',
-        marginBottom: 20,
     },
     filaBotones: {
         flexDirection: 'row',
@@ -110,8 +97,8 @@ const styles = StyleSheet.create({
     },
     txtMenu: {
         color: '#ffffff',
-        fontSize: 40,
-        fontFamily: 'AmongUs',
+        fontSize: 20,
+        fontWeight: '600',
     },
     boton: {
         borderColor: '#ffffff',
@@ -128,22 +115,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#777',
         padding: 8,
-        margin: 5,
-        width: 250,
+        margin: 10,
+        width: 200,
         backgroundColor: 'white',
-        fontFamily: 'AmongUs',
-        fontSize: 30,
-        borderRadius: 10,
     },
-    enlaceLogin: {
-        marginTop: 5,
-        padding: 5,
-    },
-    txtLogin: {
-        color: '#ffffff',
-        fontSize: 18,
-        fontFamily: 'AmongUs',
-        textDecorationLine: 'underline',
-        textAlign: 'center',
-    }
 })
