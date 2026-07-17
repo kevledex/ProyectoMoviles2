@@ -9,16 +9,25 @@ export default function MenuScreen({ navigation }: any) {
 
                 <Text style={styles.titulo}>AMONG US!</Text>
 
-                <View style={styles.filaBotones}>
-                    <TouchableOpacity style={styles.boton}
-                    onPress={() => navigation.navigate('InicioSecion')}>
-                        <Text style={styles.txtMenu}>JUGAR</Text>
-                    </TouchableOpacity>
+                <View style={styles.contenedorBotones}>
+
+                    <View style={styles.filaBotones}>
+                        <TouchableOpacity style={styles.boton}
+                            onPress={() => navigation.navigate('Jugar')}>
+                            <Text style={styles.txtMenu}>JUGAR</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.boton}
+                            onPress={() => navigation.navigate('Perfil')}>
+                            <Text style={styles.txtMenu}>PERFIL</Text>
+                        </TouchableOpacity>
+                    </View>
 
                     <TouchableOpacity style={styles.boton}
-                    onPress={() => navigation.navigate('Registrar')}>
-                        <Text style={styles.txtMenu}>PERFIL</Text>
+                        onPress={() => navigation.navigate('InicioSecion')}>
+                        <Text style={styles.txtMenu}>Login</Text>
                     </TouchableOpacity>
+
                 </View>
 
             </View>
@@ -38,6 +47,9 @@ const styles = StyleSheet.create({
         fontSize: 90,
         marginTop: 20,
         fontFamily: 'AmongUs'
+    },
+    contenedorBotones: {
+        alignItems: 'center',
     },
     filaBotones: {
         flexDirection: 'row',

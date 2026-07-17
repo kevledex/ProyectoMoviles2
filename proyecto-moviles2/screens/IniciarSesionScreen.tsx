@@ -33,8 +33,6 @@ export default function IniciarSesionScreen({ navigation }: any) {
         }
     }
 
-
-
     return (
         <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
 
@@ -57,15 +55,24 @@ export default function IniciarSesionScreen({ navigation }: any) {
                     secureTextEntry
                 />
 
-                <View style={styles.filaBotones}>
-                    <TouchableOpacity style={styles.boton}
-                        onPress={iniciarSesion}>
-                        <Text style={styles.txtMenu}>JUGAR</Text>
-                    </TouchableOpacity>
+                <View style={styles.contenedorAcciones}>
+                    <View style={styles.filaBotones}>
+                        <TouchableOpacity style={styles.boton}
+                            onPress={iniciarSesion}>
+                            <Text style={styles.txtMenu}>JUGAR</Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.boton}
-                        onPress={() => navigation.navigate('InicioSecion')}>
-                        <Text style={styles.txtMenu}>SALIR</Text>
+                        <TouchableOpacity style={styles.boton}
+                            onPress={() => navigation.navigate('Menu')}>
+                            <Text style={styles.txtMenu}>SALIR</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity
+                        style={styles.enlaceRegistro}
+                        onPress={() => navigation.navigate('Registrar')}
+                    >
+                        <Text style={styles.txtRegistro}>¿NO TIENES CUENTA? REGÍSTRATE AQUÍ</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -83,9 +90,13 @@ const styles = StyleSheet.create({
 
     titulo: {
         color: '#ffffff',
-        fontSize: 40,
-        fontWeight: 'bold',
+        fontSize: 70,
+        fontFamily: 'AmongUs',
         marginTop: 20,
+    },
+    contenedorAcciones: {
+        alignItems: 'center',
+        marginBottom: 20,
     },
     filaBotones: {
         flexDirection: 'row',
@@ -94,8 +105,8 @@ const styles = StyleSheet.create({
     },
     txtMenu: {
         color: '#ffffff',
-        fontSize: 20,
-        fontWeight: '600',
+        fontSize: 40,
+        fontFamily: 'AmongUs',
     },
     boton: {
         borderColor: '#ffffff',
@@ -113,7 +124,21 @@ const styles = StyleSheet.create({
         borderColor: '#777',
         padding: 8,
         margin: 8,
-        width: 175,
+        width: 250,
         backgroundColor: 'white',
+        fontFamily: 'AmongUs',
+        fontSize: 30,
+        borderRadius: 10
     },
+    enlaceRegistro: {
+        marginTop: 15,
+        padding: 5,
+    },
+    txtRegistro: {
+        color: '#ffffff',
+        fontSize: 20,
+        fontFamily: 'AmongUs',
+        textDecorationLine: 'underline',
+        textAlign: 'center',
+    }
 })
