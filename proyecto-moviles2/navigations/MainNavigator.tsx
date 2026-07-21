@@ -21,7 +21,7 @@ function LoginStack() {
                 options={{ headerShown: false }}
             />
 
-            <Stack.Screen name="Game" component={GameStack}
+            <Stack.Screen name="Menu" component={GameStack}
                 options={{ headerShown: false }}
             />
 

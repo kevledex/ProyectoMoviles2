@@ -17,7 +17,7 @@ export default function IniciarSesionScreen({ navigation }: any) {
                 // Signed in 
                 const user = userCredential.user;
                 console.log(user)
-                navigation.navigate('MyDrawer')
+                navigation.navigate('Menu')
                 // ...
             })
             .catch((error) => {
@@ -77,6 +77,7 @@ export default function IniciarSesionScreen({ navigation }: any) {
                     <View style={styles.filaBotones}>
                         <TouchableOpacity style={styles.boton}
                             onPress={login}>
+
                             <Text style={styles.txtMenu}>LOGIN</Text>
                         </TouchableOpacity>
                 </View>
