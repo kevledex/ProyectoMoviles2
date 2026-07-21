@@ -1,78 +1,98 @@
 import { ImageBackground, StyleSheet, Text, TouchableOpacity, View, TextInput, Button, Alert } from 'react-native'
 import { globalStyles } from '../styles/EstilosGlobales'
 import { useState } from 'react'
-import { supabase } from '../supabase/config'
+import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '../firebase/ConfigFirebase'
+
 
 
 export default function IniciarSesionScreen({ navigation }: any) {
+    const [correo, setCorreo] = useState("")
+    const [contrasenia, setContrasenia] = useState("")
 
-    const [id, setId] = useState('')
-    const [usuario, setUsuario] = useState('')
-    const [email, setEmail] = useState('')
-    const [contrasenia, setContrasenia] = useState('')
+    function login() {
 
-    async function iniciarSesion() {
-        if (email.trim() === '' || contrasenia.trim() === '') {
-            Alert.alert('Campos incompletos', 'Ingrese el correo y la contraseña')
-            return
-        }
+        signInWithEmailAndPassword(auth, correo, contrasenia)
+            .then((userCredential) => {
+                // Signed in 
+                const user = userCredential.user;
+                console.log(user)
+                navigation.navigate('MyDrawer')
+                // ...
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.log(errorCode);
 
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: email.trim().toLowerCase(),
-            password: contrasenia,
-        })
+                switch (errorCode) {
+                    case "auth/invalid-email":
+                        Alert.alert("Correo invalido", "Verificar el campo de correo")
+                        break;
+                    case "auth/missing-password":
+                        Alert.alert("Contraseña invalida", "Verificar el campo de contraseña")
+                        break;
+                    case "auth/invalid-credential":
+                        Alert.alert("Correo o contraseña incorrectos", "Verificar los campos")
+                        break;
+                    default:
+                        Alert.alert("Error", "Verificar Credenciales")
+                }
 
-        if (error) {
-            console.log('ERROR DE INICIO DE SESIÓN:', error)
-            Alert.alert('Error al iniciar sesión', error.message)
-            return
-        }
+            });
 
-        if (data.session) {
-            navigation.replace('Menu')
-        }
+    }
+
+
+    function restablecerContrasenia() {
+        sendPasswordResetEmail(auth, correo)
+            .then(() => {
+                // Password reset email sent!
+                // ..
+                Alert.alert("Mensaje", "Se envio un mensaje a tu correo")
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                // ..
+
+            });
     }
 
     return (
         <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
-
             <View style={styles.contenedorMenu}>
-
                 <Text style={styles.titulo}>INICIAR SESIÓN</Text>
 
-                <TextInput
+                <TextInput placeholder="Ingrese su correo"
                     style={styles.input}
-                    placeholder="EMAIL"
-                    value={email}
-                    onChangeText={setEmail}
-                />
+                    onChangeText={setCorreo} />
 
-                <TextInput
+                <TextInput placeholder="Ingrese la contraseña"
                     style={styles.input}
-                    placeholder="CONTRASEÑA"
-                    value={contrasenia}
-                    onChangeText={setContrasenia}
-                    secureTextEntry
-                />
+                    onChangeText={setContrasenia} />
 
+                
                 <View style={styles.contenedorAcciones}>
                     <View style={styles.filaBotones}>
                         <TouchableOpacity style={styles.boton}
-                            onPress={iniciarSesion}>
+                            onPress={login}>
                             <Text style={styles.txtMenu}>LOGIN</Text>
                         </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.boton}
-                            onPress={() => navigation.navigate('Menu')}>
-                            <Text style={styles.txtMenu}>SALIR</Text>
-                        </TouchableOpacity>
-                    </View>
+                </View>
 
                     <TouchableOpacity
                         style={styles.enlaceRegistro}
-                        onPress={() => navigation.navigate('Registrar')}
+                        onPress={() => navigation.navigate("Registro")}
                     >
                         <Text style={styles.txtRegistro}>¿NO TIENES CUENTA? REGÍSTRATE AQUÍ</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.enlaceRegistro}
+                        onPress={restablecerContrasenia} 
+                    >
+                        <Text style={styles.txtRegistro}>Olvidaste la contraseña?</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -80,6 +100,7 @@ export default function IniciarSesionScreen({ navigation }: any) {
         </ImageBackground>
     )
 }
+
 
 const styles = StyleSheet.create({
     contenedorMenu: {
@@ -131,7 +152,7 @@ const styles = StyleSheet.create({
         borderRadius: 10
     },
     enlaceRegistro: {
-        marginTop: 15,
+        marginTop: 5,
         padding: 5,
     },
     txtRegistro: {

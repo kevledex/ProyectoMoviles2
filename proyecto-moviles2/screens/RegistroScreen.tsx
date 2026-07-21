@@ -2,87 +2,91 @@ import { ImageBackground, StyleSheet, Text, TouchableOpacity, View, TextInput, B
 import { globalStyles } from '../styles/EstilosGlobales'
 import { useState } from 'react'
 import { supabase } from '../supabase/config'
+import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '../firebase/ConfigFirebase'
+import { getDatabase, ref, set } from 'firebase/database'
 
 
 export default function RegistroScreen({ navigation }: any) {
 
-    const [usuario, setUsuario] = useState('')
-    const [email, setEmail] = useState('')
-    const [contrasenia, setContrasenia] = useState('')
+    const [correo, setCorreo] = useState("")
+    const [contrasenia, setContrasenia] = useState("")
+    const [edad, setEdad] = useState(0)
+    const [nick, setNick] = useState("")
 
-    async function registrarUsuarios() {
-        const { error } = await supabase.auth.signUp({
-            email: email.trim().toLowerCase(),
-            password: contrasenia,
-            options: {
-                data: {
-                    usuario: usuario.trim(),
-                },
-            },
-        })
+    function registro() {
+        createUserWithEmailAndPassword(auth, correo, contrasenia)
+            .then((userCredential) => {
+                // Signed-up
+                const user = userCredential.user;
 
-        if (error) {
-            Alert.alert('Error', error.message)
-            return
-        }
+                guardarUsuario(user.uid);
+                navigation.navigate("Login");
+                console.log(user.uid);
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
 
-        Alert.alert('Registro exitoso', 'Revisa tu correo electrónico')
-        navigation.navigate('InicioSecion')
+                Alert.alert(errorCode, errorMessage)
+            });
+
     }
 
 
+    function guardarUsuario(uid: string) {
+        const db = getDatabase();
+        set(ref(db, 'usuarios/' + uid), {
+            correo: correo,
+            edad: edad,
+            nick: nick
+        });
+    }
+
+
+
+
     return (
-        <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
+    <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
+        <View style={styles.contenedorMenu}>
+            <Text style={styles.titulo}>Registrate</Text>
 
-            <View style={styles.contenedorMenu}>
+            <TextInput placeholder="Ingrese su Nickname"
+                style={styles.input}
+                onChangeText={setNick} />
 
-                <Text style={styles.titulo}>REGISTRATE</Text>
+            <TextInput placeholder="Ingrese su edad"
+                style={styles.input}
+                onChangeText={(texto) => setEdad(+texto)} />
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="USUARIO"
-                    value={usuario}
-                    onChangeText={setUsuario}
-                />
+                <TextInput placeholder="Ingrese su correo"
+                style={styles.input}
+                onChangeText={setCorreo} />
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="EMAIL"
-                    value={email}
-                    onChangeText={setEmail}
-                />
+            <TextInput placeholder="Ingrese la contraseña"
+                style={styles.input}
+                onChangeText={setContrasenia} />
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="CONTRASEÑA"
-                    value={contrasenia}
-                    onChangeText={setContrasenia}
-                    secureTextEntry
-                />
 
                 <View style={styles.contenedorAcciones}>
                     <View style={styles.filaBotones}>
                         <TouchableOpacity style={styles.boton}
-                            onPress={registrarUsuarios}>
+                            onPress={registro}>
                             <Text style={styles.txtMenu}>REGISTRAR</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.boton}
-                            onPress={() => navigation.navigate('Menu')}>
-                            <Text style={styles.txtMenu}>SALIR</Text>
                         </TouchableOpacity>
                     </View>
 
                     <TouchableOpacity
                         style={styles.enlaceLogin}
-                        onPress={() => navigation.navigate('InicioSecion')}
+                        onPress={() => navigation.navigate('Login')}
                     >
                         <Text style={styles.txtLogin}>¿YA TIENES CUENTA? INICIA SESIÓN</Text>
                     </TouchableOpacity>
                 </View>
 
-            </View>
-        </ImageBackground>
+            
+        </View>
+    </ImageBackground>
     )
 }
 
@@ -119,7 +123,7 @@ const styles = StyleSheet.create({
         width: 140,
         height: 55,
         borderRadius: 10,
-        margin: 10,
+        margin: 5,
         justifyContent: 'center',
         alignItems: 'center'
     },
@@ -127,9 +131,10 @@ const styles = StyleSheet.create({
     input: {
         borderWidth: 1,
         borderColor: '#777',
-        padding: 8,
+        padding: 5,
         margin: 5,
         width: 250,
+        height: 45,
         backgroundColor: 'white',
         fontFamily: 'AmongUs',
         fontSize: 30,
@@ -137,7 +142,7 @@ const styles = StyleSheet.create({
     },
     enlaceLogin: {
         marginTop: 5,
-        padding: 5,
+        padding: 1,
     },
     txtLogin: {
         color: '#ffffff',

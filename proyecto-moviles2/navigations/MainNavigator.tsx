@@ -9,37 +9,33 @@ import PerfilScreen from '../screens/PerfilScreen';
 const Tab = createNativeStackNavigator();
 const Stack = createNativeStackNavigator();
 
-function JuegoTabs() {
+function LoginStack() {
     return (
-        <Tab.Navigator screenOptions={{ headerShown: false }}>
-            <Tab.Screen name="Acciones" component={MenuScreen}
-                options={{ title: "Menu" }}
+        <Stack.Navigator initialRouteName="Login">
+
+            <Stack.Screen name="Login" component={IniciarSesionScreen}
+                options={{ headerShown: false }}
             />
-            <Tab.Screen name="Discusion" component={MenuScreen}
-                options={{ title: "Discusión" }}
+
+            <Stack.Screen name="Registro" component={RegistroScreen}
+                options={{ headerShown: false }}
             />
-        </Tab.Navigator>
+
+            <Stack.Screen name="Game" component={GameStack}
+                options={{ headerShown: false }}
+            />
+
+
+
+        </Stack.Navigator>
     );
 }
 
-function MyStack() {
+function GameStack() {
     return (
-        <Stack.Navigator initialRouteName="Menu">
-
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Menu" component={MenuScreen}
                 options={{ title: "Lobby", headerShown: false }}
-            />
-
-            <Stack.Screen
-                name="InicioSecion"
-                component={IniciarSesionScreen}
-                options={{ title: "Iniciar sesión", headerShown: false, }}
-            />
-
-            <Stack.Screen
-                name="Registrar"
-                component={RegistroScreen}
-                options={{ title: "Registrar perfil", headerShown: false, }}
             />
 
             <Stack.Screen
@@ -48,25 +44,16 @@ function MyStack() {
                 options={{ title: "Jugar", headerShown: false, }}
             />
 
-            <Stack.Screen
-                name="Perfil"
-                component={PerfilScreen}
-                options={{ title: "Perfil", headerShown: false, }}
-            />
-
-            <Stack.Screen name="Juego" component={JuegoTabs}
-                options={{ headerShown: false, }}
-            />
-
-
         </Stack.Navigator>
     );
 }
 
+
+
 export function MainNavigator() {
     return (
         <NavigationContainer>
-            <MyStack />
+            <LoginStack />
         </NavigationContainer>
     );
 }
