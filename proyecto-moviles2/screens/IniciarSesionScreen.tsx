@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
         borderRadius: 10
     },
     enlaceRegistro: {
-        marginTop: 5,
+        marginTop: 2,
         padding: 5,
     },
     txtRegistro: {
