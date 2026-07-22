@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
         borderColor: '#ffffff',
         borderWidth: 2,
         width: 140,
-        height: 55,
+        height: 45,
         borderRadius: 10,
         margin: 5,
         justifyContent: 'center',
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     enlaceLogin: {
-        marginTop: 5,
+        marginTop: 2,
         padding: 1,
     },
     txtLogin: {

@@ -5,6 +5,8 @@ import RegistroScreen from '../screens/RegistroScreen';
 import IniciarSesionScreen from '../screens/IniciarSesionScreen';
 import JuegoScreen from '../screens/JuegoScreen';
 import PerfilScreen from '../screens/PerfilScreen';
+import SalaScreen from '../screens/SalaScreen';
+import LobbyScreen from '../screens/LobbyScreen';
 
 const Tab = createNativeStackNavigator();
 const Stack = createNativeStackNavigator();
@@ -34,8 +36,28 @@ function LoginStack() {
 function GameStack() {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Menu" component={MenuScreen}
-                options={{ title: "Lobby", headerShown: false }}
+            <Stack.Screen
+                name="Menu"
+                component={MenuScreen}
+                options={{ title: "Menu", headerShown: false }}
+            />
+
+            <Stack.Screen
+                name="Sala"
+                component={SalaScreen}
+                options={{ title: "Sala", headerShown: false, }}
+            />
+
+            <Stack.Screen
+                name="Lobby"
+                component={LobbyScreen}
+                options={{ title: "Lobby", headerShown: false, }}
+            />
+
+            <Stack.Screen
+                name="Perfil"
+                component={PerfilScreen}
+                options={{ title: "Perfil", headerShown: false, }}
             />
 
             <Stack.Screen

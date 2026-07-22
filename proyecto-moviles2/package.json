@@ -8,7 +8,6 @@
     "@supabase/supabase-js": "^2.110.7",
     "expo": "~57.0.7",
     "expo-font": "~57.0.1",
-    "expo-navigation-bar": "~57.0.2",
     "expo-status-bar": "~57.0.1",
     "firebase": "^12.16.0",
     "react": "19.2.3",
