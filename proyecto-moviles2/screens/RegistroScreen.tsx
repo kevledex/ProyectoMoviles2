@@ -1,154 +1,135 @@
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, View, TextInput, Button, Alert } from 'react-native'
-import { globalStyles } from '../styles/EstilosGlobales'
-import { useState } from 'react'
-import { supabase } from '../supabase/config'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { StyleSheet, Text, View, ImageBackground, TouchableOpacity, Alert } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import TarjetaPerfil from '../components/TarjetaPerfil'
+import { getDatabase, onValue, ref } from 'firebase/database'
+import { onAuthStateChanged, signOut } from 'firebase/auth/web-extension'
 import { auth } from '../firebase/ConfigFirebase'
-import { getDatabase, ref, set } from 'firebase/database'
 
-
-export default function RegistroScreen({ navigation }: any) {
+export default function PerfilScreen({ navigation }: any) {
 
     const [correo, setCorreo] = useState("")
-    const [contrasenia, setContrasenia] = useState("")
     const [edad, setEdad] = useState(0)
     const [nick, setNick] = useState("")
 
-    function registro() {
-        createUserWithEmailAndPassword(auth, correo, contrasenia)
-            .then((userCredential) => {
-                // Signed-up
-                const user = userCredential.user;
+    function leerUsuario(uid: string) {
+        const db = getDatabase()
 
-                guardarUsuario(user.uid);
-                navigation.navigate("Login");
-                console.log(user.uid);
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
+        const usuarioRef = ref(db, 'usuarios/' + uid)
 
-                Alert.alert(errorCode, errorMessage)
-            });
+        onValue(usuarioRef, (snapshot) => {
+            const datos = snapshot.val()
 
+            if (datos) {
+                setCorreo(datos.correo)
+                setEdad(datos.edad)
+                setNick(datos.nick)
+            }
+        })
     }
 
+    useEffect(() => {
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                leerUsuario(user.uid)
+            } else {
+                navigation.navigate('Login')
+            }
+        })
+    }, [])
 
-    function guardarUsuario(uid: string) {
-        const db = getDatabase();
-        set(ref(db, 'usuarios/' + uid), {
-            correo: correo,
-            edad: edad,
-            nick: nick
-        });
+
+    function cerrarSesion() {
+        signOut(auth).then(() => {
+            navigation.navigate('Login')
+        }).catch((error) => {
+            Alert.alert("Error", "No se pudo cerrar sesión. Intente nuevamente.")
+        })
     }
-
-
 
 
     return (
-    <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
-        <View style={styles.contenedorMenu}>
-            <Text style={styles.titulo}>Registrate</Text>
+        <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={styles.fondo}>
 
-            <TextInput placeholder="Ingrese su Nickname"
-                style={styles.input}
-                onChangeText={setNick} />
+            <Text style={styles.titulo}>MI PERFIL</Text>
 
-            <TextInput placeholder="Ingrese su edad"
-                style={styles.input}
-                onChangeText={(texto) => setEdad(+texto)} />
+            <View style={styles.contenedorCentro}>
+                <TarjetaPerfil
+                    nick={nick}
+                    correo={correo}
+                    edad={edad}
+                />
+            </View>
 
-                <TextInput placeholder="Ingrese su correo"
-                style={styles.input}
-                onChangeText={setCorreo} />
+            <View style={styles.contenedorBotones}>
+                <TouchableOpacity
+                    style={styles.botonVolver}
+                    onPress={() => navigation.navigate('Menu')}>
+                    <Text style={styles.txtVolver}>VOLVER</Text>
+                </TouchableOpacity>
 
-            <TextInput placeholder="Ingrese la contraseña"
-                style={styles.input}
-                onChangeText={setContrasenia} />
+                <TouchableOpacity
+                    style={styles.botonCerrarSesion}
+                    onPress={cerrarSesion}>
+                    <Text style={styles.txtCerrarSesion}>CERRAR SESION</Text>
+                </TouchableOpacity>
+            </View>
 
-
-                <View style={styles.contenedorAcciones}>
-                    <View style={styles.filaBotones}>
-                        <TouchableOpacity style={styles.boton}
-                            onPress={registro}>
-                            <Text style={styles.txtMenu}>REGISTRAR</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <TouchableOpacity
-                        style={styles.enlaceLogin}
-                        onPress={() => navigation.navigate('Login')}
-                    >
-                        <Text style={styles.txtLogin}>¿YA TIENES CUENTA? INICIA SESIÓN</Text>
-                    </TouchableOpacity>
-                </View>
-
-            
-        </View>
-    </ImageBackground>
+        </ImageBackground>
     )
 }
 
 const styles = StyleSheet.create({
-    contenedorMenu: {
+    fondo: {
         flex: 1,
-        justifyContent: 'space-between',
-        alignItems: 'center',
     },
-
     titulo: {
         color: '#ffffff',
         fontSize: 50,
         fontFamily: 'AmongUs',
-        marginTop: 20,
+        textAlign: 'center',
+        marginTop: 40,
+        marginBottom: 10,
     },
-    contenedorAcciones: {
-        alignItems: 'center',
-        marginBottom: 20,
+    contenedorCentro: {
+        flex: 1,
+        justifyContent: 'center',
     },
-    filaBotones: {
+    contenedorBotones: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        marginBottom: 20,
     },
-    txtMenu: {
-        color: '#ffffff',
-        fontSize: 40,
-        fontFamily: 'AmongUs',
-    },
-    boton: {
+    botonVolver: {
         borderColor: '#ffffff',
         borderWidth: 2,
-        width: 140,
-        height: 45,
         borderRadius: 10,
-        margin: 5,
+        margin: 10,
+        height: 50,
+        width: 130,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        backgroundColor: '#00000088',
     },
-
-    input: {
-        borderWidth: 1,
-        borderColor: '#777',
-        padding: 5,
-        margin: 5,
-        width: 250,
-        height: 45,
-        backgroundColor: 'white',
-        fontFamily: 'AmongUs',
-        fontSize: 30,
-        borderRadius: 10,
-    },
-    enlaceLogin: {
-        marginTop: 2,
-        padding: 1,
-    },
-    txtLogin: {
+    txtVolver: {
         color: '#ffffff',
-        fontSize: 18,
         fontFamily: 'AmongUs',
-        textDecorationLine: 'underline',
-        textAlign: 'center',
+        fontSize: 24,
+    },
+    botonCerrarSesion: {
+        borderColor: '#ff3333',
+        borderWidth: 2,
+        borderRadius: 10,
+        margin: 10,
+        height: 50,
+        width: 170,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#00000088',
+    },
+    txtCerrarSesion: {
+        color: '#ff3333',
+        fontFamily: 'AmongUs',
+        fontSize: 20,
     }
 })
