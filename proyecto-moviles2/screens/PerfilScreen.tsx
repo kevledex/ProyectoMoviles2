@@ -1,15 +1,63 @@
-import { StyleSheet, Text, View, ImageBackground, TouchableOpacity } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View, ImageBackground, TouchableOpacity, Alert } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import TarjetaPerfil from '../components/TarjetaPerfil'
+import { getDatabase, onValue, ref } from 'firebase/database'
+import { onAuthStateChanged, signOut } from 'firebase/auth/web-extension'
+import { auth } from '../firebase/ConfigFirebase'
 
 export default function PerfilScreen({ navigation }: any) {
+
+    const [correo, setCorreo] = useState("")
+    const [edad, setEdad] = useState(0)
+    const [nick, setNick] = useState("")
+
+    function leerUsuario(uid: string) {
+        const db = getDatabase()
+
+        const usuarioRef = ref(db, 'usuarios/' + uid)
+
+        onValue(usuarioRef, (snapshot) => {
+            const datos = snapshot.val()
+
+            if (datos) {
+                setCorreo(datos.correo)
+                setEdad(datos.edad)
+                setNick(datos.nick)
+            }
+        })
+    }
+
+    useEffect(() => {
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                leerUsuario(user.uid)
+            } else {
+                navigation.navigate('Login')
+            }
+        })
+    }, [])
+
+
+    function cerrarSesion() {
+        signOut(auth).then(() => {
+            navigation.navigate('Login')
+        }).catch((error) => {
+            Alert.alert("Error", "No se pudo cerrar sesión. Intente nuevamente.")
+        })
+    }
+
+
     return (
         <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={styles.fondo}>
 
             <Text style={styles.titulo}>MI PERFIL</Text>
 
             <View style={styles.contenedorCentro}>
-                <TarjetaPerfil />
+                <TarjetaPerfil
+                    nick={nick}
+                    correo={correo}
+                    edad={edad}
+                />
             </View>
 
             <View style={styles.contenedorBotones}>
@@ -20,7 +68,8 @@ export default function PerfilScreen({ navigation }: any) {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={styles.botonCerrarSesion}>
+                    style={styles.botonCerrarSesion}
+                    onPress={cerrarSesion}>
                     <Text style={styles.txtCerrarSesion}>CERRAR SESION</Text>
                 </TouchableOpacity>
             </View>
