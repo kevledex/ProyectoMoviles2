@@ -1,4 +1,5 @@
 import {StyleSheet,Text,View,TouchableOpacity,Modal} from 'react-native'
+
 import React, { useState } from 'react'
 
 type Props = {
