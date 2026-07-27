@@ -7,6 +7,7 @@ import JuegoScreen from '../screens/JuegoScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import SalaScreen from '../screens/SalaScreen';
 import LobbyScreen from '../screens/LobbyScreen';
+import ResultadosScreen from '../screens/ResultadosScreen';
 
 const Tab = createNativeStackNavigator();
 const Stack = createNativeStackNavigator();
@@ -61,9 +62,15 @@ function GameStack() {
             />
 
             <Stack.Screen
-                name="Jugar"
+                name="Juego"
                 component={JuegoScreen}
                 options={{ title: "Jugar", headerShown: false, }}
+            />
+
+            <Stack.Screen
+                name="Resultados"
+                component={ResultadosScreen}
+                options={{ title: "Resultados", headerShown: false, }}
             />
 
         </Stack.Navigator>

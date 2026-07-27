@@ -3,7 +3,7 @@ import { globalStyles } from '../styles/EstilosGlobales'
 
 export default function MenuScreen({ navigation }: any) {
     return (
-        <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
+        <ImageBackground source={require('../assets/images//FondoMenu.png')} style={globalStyles.container}>
 
             <View style={styles.contenedorMenu}>
 
