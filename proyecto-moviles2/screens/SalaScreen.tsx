@@ -64,14 +64,14 @@ export default function SalaScreen({ navigation }: any) {
 
             <View style={styles.contenedorColumnas}>
                 <View style={styles.columna}>
-                    <Image source={require('../assets/images/FondoMenu.jpg')} style={styles.iconoColumna} resizeMode="cover" />
+                    <Image source={require('../assets/images/FondoCrearSala.png')} style={styles.iconoColumna} resizeMode="cover" />
                     <TouchableOpacity style={styles.boton} onPress={crearSala}>
                         <Text style={styles.txtBoton}>CREAR SALA</Text>
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.columna}>
-                    <Image source={require('../assets/images/FondoMenu.jpg')} style={styles.iconoColumna} resizeMode="cover" />
+                    <Image source={require('../assets/images/FondoCodigo.png')} style={styles.iconoColumna} resizeMode="cover" />
                     <TextInput
                         placeholder="CÓDIGO"
                         style={styles.input}
@@ -87,7 +87,7 @@ export default function SalaScreen({ navigation }: any) {
                 </View>
             </View>
 
-            <TouchableOpacity style={styles.botonVolver} onPress={() => navigation.goBack()}>
+            <TouchableOpacity style={styles.botonVolver} onPress={() => navigation.navigate('Menu')}>
                 <Text style={styles.txtBotonPequeno}>VOLVER</Text>
             </TouchableOpacity>
         </ImageBackground>

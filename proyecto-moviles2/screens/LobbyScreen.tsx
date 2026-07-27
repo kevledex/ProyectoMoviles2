@@ -9,40 +9,57 @@ export default function Lobby({ route, navigation }: any) {
 
     useEffect(() => {
         const db = getDatabase()
-        const salaRef = ref(db, `salas/${codigoSala}/jugadores`)
+        const salaRef = ref(db, 'salas/' + codigoSala)
 
         const unsubscribe = onValue(salaRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val()
-                const lista = Object.keys(data).map(key => ({
-                    id: key,
-                    ...data[key]
-                }))
-                setJugadores(lista)
-            } else {
+            if (!snapshot.exists()) {
                 Alert.alert("Sala cerrada", "La sala ya no está disponible.")
                 navigation.navigate('Sala')
+                return
+            }
+
+            const datos = snapshot.val()
+            const dataJugadores = datos.jugadores || {}
+            const lista = Object.keys(dataJugadores).map((key) => ({
+                id: key,
+                ...dataJugadores[key]
+            }))
+            setJugadores(lista)
+
+            if (datos.estado === 'jugando') {
+                navigation.navigate('Juego', { codigoSala: codigoSala })
             }
         })
 
         return () => unsubscribe()
     }, [])
 
-    const iniciarPartida = () => {
+    function iniciarPartida() {
+        if (jugadores.length < 2) {
+            Alert.alert("Faltan jugadores", "Necesitas 2 jugadores para empezar")
+            return
+        }
+
         const db = getDatabase()
-        update(ref(db, `salas/${codigoSala}`), { estado: 'jugando' }).then(() => {
-            Alert.alert("Iniciando", "¡Prepárense!")
+        const updates: any = {}
+        updates['salas/' + codigoSala + '/estado'] = 'jugando'
+
+        jugadores.forEach((jugador) => {
+            updates['salas/' + codigoSala + '/jugadores/' + jugador.id + '/vida'] = 100
+            updates['salas/' + codigoSala + '/jugadores/' + jugador.id + '/aciertos'] = 0
         })
+
+        update(ref(db), updates)
     }
 
-    const salirLobby = () => {
+    function salirLobby() {
         const db = getDatabase()
         const currentUser = auth.currentUser
 
         if (esHost) {
-            remove(ref(db, `salas/${codigoSala}`))
+            remove(ref(db, 'salas/' + codigoSala))
         } else if (currentUser) {
-            remove(ref(db, `salas/${codigoSala}/jugadores/${currentUser.uid}`))
+            remove(ref(db, 'salas/' + codigoSala + '/jugadores/' + currentUser.uid))
         }
         navigation.navigate('Sala')
     }
@@ -84,7 +101,7 @@ export default function Lobby({ route, navigation }: any) {
 const styles = StyleSheet.create({
     fondo: {
         flex: 1,
-        padding: 20, 
+        padding: 20,
         alignItems: 'center'
     },
     tituloSala: {
