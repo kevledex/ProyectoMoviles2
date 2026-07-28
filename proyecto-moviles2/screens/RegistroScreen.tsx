@@ -1,10 +1,13 @@
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, View, TextInput, Button, Alert } from 'react-native'
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, View, TextInput, Button, Alert, Image } from 'react-native'
 import { globalStyles } from '../styles/EstilosGlobales'
 import { useState } from 'react'
 import { supabase } from '../supabase/config'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../firebase/ConfigFirebase'
 import { getDatabase, ref, set } from 'firebase/database'
+import * as ImagePicker from 'expo-image-picker';
+import { File, Directory, Paths } from 'expo-file-system';
+
 
 
 export default function RegistroScreen({ navigation }: any) {
@@ -43,29 +46,81 @@ export default function RegistroScreen({ navigation }: any) {
         });
     }
 
+    //Guardar Imagen Avatar
+    const [image, setImage] = useState<string | null>(null);
+    const pickImage = async () => {
+
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (!permissionResult.granted) {
+            Alert.alert('Permission required', 'Permission to access the media library is required.');
+            return;
+        }
+
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images', 'videos'],
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        console.log(result);
+
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
+        }
+    };
+
+
+//Subir Imagen
+    async function subirImagen() {
+
+        const avatarFile = await new File(image as string).bytes()
+        const { data, error } = await supabase
+            .storage
+            .from('jugadores')
+            .upload('publica/avatar3.png', avatarFile, {
+                contentType: 'image/jpeg',
+                cacheControl: '1',
+                upsert: false
+            })
+
+            console.log(error);
+
+    }
+
 
 
 
     return (
-    <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
-        <View style={styles.contenedorMenu}>
-            <Text style={styles.titulo}>Registrate</Text>
+        <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
+            <View style={styles.contenedorMenu}>
+                <Text style={styles.titulo}>Registrate</Text>
 
-            <TextInput placeholder="Ingrese su Nickname"
-                style={styles.input}
-                onChangeText={setNick} />
+                <TextInput placeholder="Ingrese su Nickname"
+                    style={styles.input}
+                    onChangeText={setNick} />
 
-            <TextInput placeholder="Ingrese su edad"
-                style={styles.input}
-                onChangeText={(texto) => setEdad(+texto)} />
+                <TextInput placeholder="Ingrese su edad"
+                    style={styles.input}
+                    onChangeText={(texto) => setEdad(+texto)} />
 
                 <TextInput placeholder="Ingrese su correo"
-                style={styles.input}
-                onChangeText={setCorreo} />
+                    style={styles.input}
+                    onChangeText={setCorreo} />
 
-            <TextInput placeholder="Ingrese la contraseña"
-                style={styles.input}
-                onChangeText={setContrasenia} />
+                <TextInput placeholder="Ingrese la contraseña"
+                    style={styles.input}
+                    onChangeText={setContrasenia} />
+
+
+            <View style={styles.containerImg}>
+                    <Button title="Abrir Galeria" onPress={pickImage} />
+                    {image && <Image source={{ uri: image }} style={styles.image} />}
+
+                    <Button title="Subir Imagen" onPress={subirImagen} />
+            </View>
+                
 
 
                 <View style={styles.contenedorAcciones}>
@@ -84,9 +139,9 @@ export default function RegistroScreen({ navigation }: any) {
                     </TouchableOpacity>
                 </View>
 
-            
-        </View>
-    </ImageBackground>
+
+            </View>
+        </ImageBackground>
     )
 }
 
@@ -150,5 +205,18 @@ const styles = StyleSheet.create({
         fontFamily: 'AmongUs',
         textDecorationLine: 'underline',
         textAlign: 'center',
-    }
+    },
+
+    containerImg: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    image: {
+        width: 300,
+        height: 300,
+        resizeMode: 'contain'
+    },
+
+
 })
