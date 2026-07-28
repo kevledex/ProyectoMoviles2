@@ -10,6 +10,7 @@ export default function PerfilScreen({ navigation }: any) {
     const [correo, setCorreo] = useState("")
     const [edad, setEdad] = useState(0)
     const [nick, setNick] = useState("")
+    const [puntos, setPuntos] = useState(0)
 
     function leerUsuario(uid: string) {
         const db = getDatabase()
@@ -23,6 +24,7 @@ export default function PerfilScreen({ navigation }: any) {
                 setCorreo(datos.correo)
                 setEdad(datos.edad)
                 setNick(datos.nick)
+                setPuntos(datos.puntos)
             }
         })
     }
@@ -48,7 +50,7 @@ export default function PerfilScreen({ navigation }: any) {
 
 
     return (
-        <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={styles.fondo}>
+        <ImageBackground source={require('../assets/images/FondoPerfil.png')} style={styles.fondo}>
 
             <Text style={styles.titulo}>MI PERFIL</Text>
 
@@ -57,6 +59,7 @@ export default function PerfilScreen({ navigation }: any) {
                     nick={nick}
                     correo={correo}
                     edad={edad}
+                    puntos={puntos}
                 />
             </View>
 
