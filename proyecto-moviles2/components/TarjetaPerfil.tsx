@@ -6,13 +6,15 @@ type Props = {
     nick: string
     correo: string
     edad: number
+    puntos: number
 }
 
-export default function TarjetaPerfil({nick,correo, edad}: Props) {
+export default function TarjetaPerfil({nick,correo, edad, puntos}: Props) {
 
     const [ocultarModal, setOcultarModal] = useState(false)
 
 return (
+
     <TouchableOpacity
         onPress={() => setOcultarModal(true)}
         style={styles.tarjeta}
@@ -45,7 +47,7 @@ return (
                     <View style={styles.cajaStats}>
 
                         <View style={styles.filaStat}>
-                             <Text style={styles.txtStatLabel}>
+                            <Text style={styles.txtStatLabel}>
                                 EDAD:
                             </Text>
 
@@ -54,12 +56,10 @@ return (
 
                         <View style={styles.filaStat}>
                             <Text style={styles.txtStatLabel}>
-                                PARTIDAS:
+                                PUNTUACIÓN:
                             </Text>
 
-                            <Text style={styles.txtStatVal}>
-                                0
-                            </Text>
+                            <Text style={styles.txtStatVal}>{puntos}</Text>
                         </View>
 
                     </View>
