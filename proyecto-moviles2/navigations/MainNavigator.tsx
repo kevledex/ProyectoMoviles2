@@ -8,6 +8,10 @@ import PerfilScreen from '../screens/PerfilScreen';
 import SalaScreen from '../screens/SalaScreen';
 import LobbyScreen from '../screens/LobbyScreen';
 import ResultadosScreen from '../screens/ResultadosScreen';
+import { useAudioPlayer } from 'expo-audio';
+import { useEffect, useState } from 'react';
+
+const musicaFondo = require('../assets/audio/AmongUsSpaceTheme.mp3');
 
 const Tab = createNativeStackNavigator();
 const Stack = createNativeStackNavigator();
@@ -27,8 +31,6 @@ function LoginStack() {
             <Stack.Screen name="Menu" component={GameStack}
                 options={{ headerShown: false }}
             />
-
-
 
         </Stack.Navigator>
     );
@@ -77,11 +79,39 @@ function GameStack() {
     );
 }
 
+function obtenerPantallaActual(estado: any): string {
+    if (!estado) return ''
 
+    const ruta = estado.routes[estado.index]
+
+    if (ruta.state) {
+        return obtenerPantallaActual(ruta.state)
+    }
+
+    return ruta.name
+}
 
 export function MainNavigator() {
+    const player = useAudioPlayer(musicaFondo)
+    const [pantallaActual, setPantallaActual] = useState('')
+
+    useEffect(() => {
+        player.loop = true
+        player.play()
+    }, [])
+
+    useEffect(() => {
+        if (pantallaActual == 'Juego') {
+            player.pause()
+        } else {
+            player.play()
+        }
+    }, [pantallaActual])
+
     return (
-        <NavigationContainer>
+        <NavigationContainer
+            onStateChange={(estado) => setPantallaActual(obtenerPantallaActual(estado))}
+        >
             <LoginStack />
         </NavigationContainer>
     );
