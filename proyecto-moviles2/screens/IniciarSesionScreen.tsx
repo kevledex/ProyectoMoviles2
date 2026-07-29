@@ -60,7 +60,7 @@ export default function IniciarSesionScreen({ navigation }: any) {
     }
 
     return (
-        <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
+        <ImageBackground source={require('../assets/images/FondoLogin.png')} style={globalStyles.container}>
             <View style={styles.contenedorMenu}>
                 <Text style={styles.titulo}>INICIAR SESIÓN</Text>
 

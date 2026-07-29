@@ -60,7 +60,7 @@ export default function ResultadosScreen({ route, navigation }: any) {
     const misAciertos = datos.jugadores[uid]?.aciertos || 0
 
     return (
-        <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={styles.fondo}>
+        <ImageBackground source={require('../assets/images/FondoResultados.png')} style={styles.fondo}>
             <Text style={[styles.txtResultado, gane ? styles.txtGano : styles.txtPerdio]}>
                 {gane ? "GANASTE" : "PERDISTE"}
             </Text>

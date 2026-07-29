@@ -3,60 +3,88 @@ import React, { useState } from 'react'
 import { getDatabase, ref, set, get, child, update } from 'firebase/database'
 import { auth } from '../firebase/ConfigFirebase'
 
+const MAX_JUGADORES = 2
+const VIDA_INICIAL = 1000
+
 export default function SalaScreen({ navigation }: any) {
     const [codigoSala, setCodigoSala] = useState("")
 
-    const crearSala = () => {
+    function generarCodigo() {
         const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-        let nuevoCodigo = ''
-        for (let i = 0; i < 4; i++) nuevoCodigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length))
-
-        const db = getDatabase()
-        const currentUser = auth.currentUser
-
-        if (currentUser) {
-            set(ref(db, 'salas/' + nuevoCodigo), {
-                host: currentUser.uid,
-                estado: 'esperando',
-                jugadores: {
-                    [currentUser.uid]: {
-                        correo: currentUser.email,
-                        nick: currentUser.email?.split('@')[0]
-                    }
-                }
-            }).then(() => {
-                navigation.navigate('Lobby', { codigoSala: nuevoCodigo, esHost: true })
-            }).catch(error => Alert.alert("Error", error.message))
+        let codigo = ''
+        for (let i = 0; i < 4; i++) {
+            codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length))
         }
+        return codigo
     }
 
-    const unirseSala = async () => {
-        if (codigoSala.trim() === "") return Alert.alert("Error", "Ingresa un código")
-
-        const dbRef = ref(getDatabase())
+    function crearSala() {
         const currentUser = auth.currentUser
-        const codigoUpper = codigoSala.toUpperCase()
+        if (!currentUser) return
 
-        if (currentUser) {
-            const snapshot = await get(child(dbRef, `salas/${codigoUpper}`))
+        const nuevoCodigo = generarCodigo()
+        const db = getDatabase()
 
-            if (snapshot.exists() && snapshot.val().estado === 'esperando') {
-                const updates: any = {}
-                updates[`salas/${codigoUpper}/jugadores/${currentUser.uid}`] = {
+        set(ref(db, 'salas/' + nuevoCodigo), {
+            host: currentUser.uid,
+            estado: 'esperando',
+            jugadores: {
+                [currentUser.uid]: {
                     correo: currentUser.email,
-                    nick: currentUser.email?.split('@')[0]
+                    nick: currentUser.email?.split('@')[0],
+                    vida: VIDA_INICIAL,
+                    aciertos: 0,
+                    disparos: 0
                 }
-
-                await update(ref(getDatabase()), updates)
-                navigation.navigate('Lobby', { codigoSala: codigoUpper, esHost: false })
-            } else {
-                Alert.alert("Error", "La sala no existe o ya empezó")
             }
+        }).then(() => {
+            navigation.navigate('Lobby', { codigoSala: nuevoCodigo, esHost: true })
+        }).catch((error) => {
+            Alert.alert("Error", error.message)
+        })
+    }
+
+    async function unirseSala() {
+        if (codigoSala.trim() === "") {
+            Alert.alert("Error", "Ingresa un código")
+            return
         }
+
+        const currentUser = auth.currentUser
+        if (!currentUser) return
+
+        const codigoUpper = codigoSala.toUpperCase()
+        const db = getDatabase()
+        const snapshot = await get(child(ref(db), 'salas/' + codigoUpper))
+
+        if (!snapshot.exists() || snapshot.val().estado !== 'esperando') {
+            Alert.alert("Error", "La sala no existe o ya empezó")
+            return
+        }
+
+        const jugadoresActuales = snapshot.val().jugadores || {}
+        const cantidad = Object.keys(jugadoresActuales).length
+
+        if (cantidad >= MAX_JUGADORES) {
+            Alert.alert("Sala llena", "Esta sala ya tiene 2 jugadores")
+            return
+        }
+
+        const updates: any = {}
+        updates['salas/' + codigoUpper + '/jugadores/' + currentUser.uid] = {
+            correo: currentUser.email,
+            nick: currentUser.email?.split('@')[0],
+            vida: VIDA_INICIAL,
+            aciertos: 0,
+            disparos: 0
+        }
+
+        await update(ref(db), updates)
+        navigation.navigate('Lobby', { codigoSala: codigoUpper, esHost: false })
     }
 
     return (
-        <ImageBackground source={require('../assets/images/FondoSala.png')} style={styles.fondo}>
+        <ImageBackground source={require('../assets/images/FondoSala2.png')} style={styles.fondo}>
             <View style={styles.header}>
                 <Text style={styles.txtAmongGrande}>AMONG US</Text>
                 <Text style={styles.txtSalasPequeno}>SALAS</Text>
@@ -87,7 +115,7 @@ export default function SalaScreen({ navigation }: any) {
                 </View>
             </View>
 
-            <TouchableOpacity style={styles.botonVolver} onPress={() => navigation.navigate('Menu')}>
+            <TouchableOpacity style={styles.botonVolver} onPress={() => navigation.goBack()}>
                 <Text style={styles.txtBotonPequeno}>VOLVER</Text>
             </TouchableOpacity>
         </ImageBackground>
