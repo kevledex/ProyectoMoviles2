@@ -26,12 +26,10 @@ export default function RegistroScreen({ navigation }: any) {
                 if (image) {
                     avatarUrl = await subirImagen(user.uid);
                 }
-
                 guardarUsuario(
                     user.uid,
                     avatarUrl
                 );
-
                 navigation.navigate("Login");
                 console.log(user.uid);
             })
@@ -61,7 +59,6 @@ export default function RegistroScreen({ navigation }: any) {
 //Elejir imagenes
     const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
         if (!permissionResult.granted) {
             Alert.alert('Permission required', 'Permission to access the media library is required.');
             return;
@@ -73,9 +70,7 @@ export default function RegistroScreen({ navigation }: any) {
             aspect: [3, 3],
             quality: 1,
         });
-
         console.log(result);
-
         if (!result.canceled) {
             setImage(result.assets[0].uri);
         }
@@ -109,6 +104,7 @@ export default function RegistroScreen({ navigation }: any) {
             .getPublicUrl(ruta)
             .data
             .publicUrl;
+            
 
         return url;
     }
@@ -124,7 +120,6 @@ export default function RegistroScreen({ navigation }: any) {
                 <Text style={styles.titulo}>Registrate</Text>
 
                 <View style={styles.contenedorRegistro}>
-
                     <View style={styles.datosUsuario}>
 
                         <TextInput
@@ -218,20 +213,24 @@ const styles = StyleSheet.create({
         fontFamily: 'AmongUs',
         marginTop: 20,
     },
+
     contenedorAcciones: {
         alignItems: 'center',
         marginBottom: 20,
     },
+
     filaBotones: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
     },
+
     txtMenu: {
         color: '#ffffff',
         fontSize: 40,
         fontFamily: 'AmongUs',
     },
+
     boton: {
         borderColor: '#ffffff',
         borderWidth: 2,
@@ -255,10 +254,12 @@ const styles = StyleSheet.create({
         fontSize: 30,
         borderRadius: 10,
     },
+
     enlaceLogin: {
         marginTop: 2,
         padding: 1,
     },
+
     txtLogin: {
         color: '#ffffff',
         fontSize: 18,
@@ -272,21 +273,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+
     image: {
         width: 300,
         height: 300,
         resizeMode: 'contain'
     },
 
-
     avatar: {
         width: 130,
         height: 130,
-        borderRadius: 65,
         borderWidth: 3,
         borderColor: "#fff",
     },
-
 
     avatarVacio: {
         width: 130,
@@ -304,12 +303,10 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
 
-
     datosUsuario: {
         width: "55%",
         alignItems: "center",
     },
-
 
     avatarContainer: {
         width: "40%",
@@ -317,14 +314,12 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
 
-
     tituloAvatar: {
         color: "#ffffff",
         fontSize: 35,
         fontFamily: "AmongUs",
         marginBottom: 15,
     },
-
 
     botonImagen: {
         borderColor: "#ffffff",

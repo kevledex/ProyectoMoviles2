@@ -26,7 +26,11 @@ export default function PerfilScreen({ navigation }: any) {
                 setEdad(datos.edad)
                 setNick(datos.nick)
                 setPuntos(datos.puntos)
+                setAvatarUrl(datos.avatarUrl || "");
             }
+
+            console.log(datos);
+            console.log("Avatar:", datos.avatarUrl);
         })
     }
 
@@ -61,6 +65,7 @@ export default function PerfilScreen({ navigation }: any) {
                     correo={correo}
                     edad={edad}
                     puntos={puntos}
+                    image={avatarUrl}
                 />
             </View>
 
@@ -83,9 +88,11 @@ export default function PerfilScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+    
     fondo: {
         flex: 1,
     },
+
     titulo: {
         color: '#ffffff',
         fontSize: 50,
