@@ -7,6 +7,7 @@ type Props = {
     correo: string
     edad: number
     puntos: number
+    
 }
 
 export default function TarjetaPerfil({nick,correo, edad, puntos}: Props) {

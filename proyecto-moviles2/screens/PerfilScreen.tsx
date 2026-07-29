@@ -11,6 +11,7 @@ export default function PerfilScreen({ navigation }: any) {
     const [edad, setEdad] = useState(0)
     const [nick, setNick] = useState("")
     const [puntos, setPuntos] = useState(0)
+    const [avatarUrl, setAvatarUrl] = useState("")
 
     function leerUsuario(uid: string) {
         const db = getDatabase()
