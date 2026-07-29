@@ -9,49 +9,56 @@ import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
 
 
-
 export default function RegistroScreen({ navigation }: any) {
 
     const [correo, setCorreo] = useState("")
     const [contrasenia, setContrasenia] = useState("")
     const [edad, setEdad] = useState(0)
     const [nick, setNick] = useState("")
+    const [image, setImage] = useState<string | null>(null);
 
     function registro() {
         createUserWithEmailAndPassword(auth, correo, contrasenia)
-            .then((userCredential) => {
-                // Signed-up
-                const user = userCredential.user;
+            .then(async (userCredential) => {
 
-                guardarUsuario(user.uid);
+                const user = userCredential.user;
+                let avatarUrl = "";
+                if (image) {
+                    avatarUrl = await subirImagen(user.uid);
+                }
+                guardarUsuario(
+                    user.uid,
+                    avatarUrl
+                );
                 navigation.navigate("Login");
                 console.log(user.uid);
             })
             .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-
-                Alert.alert(errorCode, errorMessage)
+                Alert.alert(
+                    error.code,
+                    error.message
+                )
             });
-
+        Alert.alert('Usuario Registrado','El usuario se registro con exito')
     }
 
 
-    function guardarUsuario(uid: string) {
+    function guardarUsuario(uid: string, avatarUrl?: string) {
         const db = getDatabase();
-        set(ref(db, 'usuarios/' + uid), {
-            correo: correo,
-            edad: edad,
-            nick: nick
-        });
+        set(ref(db, 'usuarios/' + uid),
+            {
+                correo: correo,
+                edad: edad,
+                nick: nick,
+                avatarUrl: avatarUrl
+            }
+        );
     }
 
-    //Guardar Imagen Avatar
-    const [image, setImage] = useState<string | null>(null);
+
+//Elejir imagenes
     const pickImage = async () => {
-
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!permissionResult.granted) {
             Alert.alert('Permission required', 'Permission to access the media library is required.');
             return;
@@ -60,87 +67,135 @@ export default function RegistroScreen({ navigation }: any) {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images', 'videos'],
             allowsEditing: true,
-            aspect: [4, 3],
+            aspect: [3, 3],
             quality: 1,
         });
-
         console.log(result);
-
         if (!result.canceled) {
             setImage(result.assets[0].uri);
         }
     };
 
 
-//Subir Imagen
-    async function subirImagen() {
+    //Subir Imagen
+    async function subirImagen(uid: string): Promise<string> {
 
-        const avatarFile = await new File(image as string).bytes()
-        const { data, error } = await supabase
+        const avatarFile = await new File(image as string).bytes();
+        const ruta = `usuarios/${uid}/avatar.png`;
+
+        const { error } = await supabase
             .storage
             .from('jugadores')
-            .upload('publica/avatar3.png', avatarFile, {
-                contentType: 'image/jpeg',
-                cacheControl: '1',
-                upsert: false
-            })
+            .upload(ruta, avatarFile,
+                {
+                    contentType: 'image/jpeg',
+                    cacheControl: '3600',
+                    upsert: true
+                });
 
+        if (error) {
             console.log(error);
+            return "";
+        }
 
+        const url = supabase
+            .storage
+            .from('jugadores')
+            .getPublicUrl(ruta)
+            .data
+            .publicUrl;
+            
+
+        return url;
     }
 
 
-
-
     return (
-        <ImageBackground source={require('../assets/images/FondoMenu.jpg')} style={globalStyles.container}>
+        <ImageBackground
+            source={require('../assets/images/FondoMenu.jpg')}
+            style={globalStyles.container}
+        >
             <View style={styles.contenedorMenu}>
+
                 <Text style={styles.titulo}>Registrate</Text>
 
-                <TextInput placeholder="Ingrese su Nickname"
-                    style={styles.input}
-                    onChangeText={setNick} />
+                <View style={styles.contenedorRegistro}>
+                    <View style={styles.datosUsuario}>
 
-                <TextInput placeholder="Ingrese su edad"
-                    style={styles.input}
-                    onChangeText={(texto) => setEdad(+texto)} />
+                        <TextInput
+                            placeholder="Ingrese su Nickname"
+                            style={styles.input}
+                            onChangeText={setNick}
+                        />
 
-                <TextInput placeholder="Ingrese su correo"
-                    style={styles.input}
-                    onChangeText={setCorreo} />
+                        <TextInput
+                            placeholder="Ingrese su edad"
+                            style={styles.input}
+                            onChangeText={(texto) => setEdad(+texto)}
+                        />
 
-                <TextInput placeholder="Ingrese la contraseña"
-                    style={styles.input}
-                    onChangeText={setContrasenia} />
+                        <TextInput
+                            placeholder="Ingrese su correo"
+                            style={styles.input}
+                            onChangeText={setCorreo}
+                        />
 
+                        <TextInput
+                            placeholder="Ingrese la contraseña"
+                            style={styles.input}
+                            onChangeText={setContrasenia}
+                        />
 
-            <View style={styles.containerImg}>
-                    <Button title="Abrir Galeria" onPress={pickImage} />
-                    {image && <Image source={{ uri: image }} style={styles.image} />}
+                    <View style={styles.contenedorAcciones}>
 
-                    <Button title="Subir Imagen" onPress={subirImagen} />
-            </View>
-                
-
-
-                <View style={styles.contenedorAcciones}>
-                    <View style={styles.filaBotones}>
-                        <TouchableOpacity style={styles.boton}
-                            onPress={registro}>
+                        <View style={styles.filaBotones}>
+                            <TouchableOpacity
+                                    style={styles.boton}
+                                    onPress={registro}
+                                >
                             <Text style={styles.txtMenu}>REGISTRAR</Text>
-                        </TouchableOpacity>
-                    </View>
+                            </TouchableOpacity>
+                        </View>
 
-                    <TouchableOpacity
-                        style={styles.enlaceLogin}
-                        onPress={() => navigation.navigate('Login')}
-                    >
-                        <Text style={styles.txtLogin}>¿YA TIENES CUENTA? INICIA SESIÓN</Text>
-                    </TouchableOpacity>
+                        <TouchableOpacity
+                                style={styles.enlaceLogin}
+                                onPress={() => navigation.navigate('Login')}
+                            >
+                            <Text style={styles.txtLogin}>¿YA TIENES CUENTA? INICIA SESIÓN</Text>
+                         </TouchableOpacity>
+
+                    </View>
                 </View>
 
+                    <View style={styles.avatarContainer}>
+
+                        <Text style={styles.tituloAvatar}>AVATAR</Text>
+
+                        {image ?
+                            <Image
+                                source={{ uri: image }}
+                                style={styles.avatar}
+                            />
+                            :
+
+                        <View style={styles.avatarVacio}>
+                            <Text style={styles.txtLogin}>SIN FOTO</Text>
+                        </View>
+                        }
+
+                    <TouchableOpacity
+                        style={styles.botonImagen}
+                        onPress={pickImage}
+                    >
+                        <Text style={styles.txtMenu}>ELEGIR FOTO</Text>
+                    </TouchableOpacity>
+
+                    </View>
+
+                </View>
 
             </View>
+
         </ImageBackground>
     )
 }
@@ -158,20 +213,24 @@ const styles = StyleSheet.create({
         fontFamily: 'AmongUs',
         marginTop: 20,
     },
+
     contenedorAcciones: {
         alignItems: 'center',
         marginBottom: 20,
     },
+
     filaBotones: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
     },
+
     txtMenu: {
         color: '#ffffff',
         fontSize: 40,
         fontFamily: 'AmongUs',
     },
+
     boton: {
         borderColor: '#ffffff',
         borderWidth: 2,
@@ -195,10 +254,12 @@ const styles = StyleSheet.create({
         fontSize: 30,
         borderRadius: 10,
     },
+
     enlaceLogin: {
         marginTop: 2,
         padding: 1,
     },
+
     txtLogin: {
         color: '#ffffff',
         fontSize: 18,
@@ -212,10 +273,63 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+
     image: {
         width: 300,
         height: 300,
         resizeMode: 'contain'
+    },
+
+    avatar: {
+        width: 130,
+        height: 130,
+        borderWidth: 3,
+        borderColor: "#fff",
+    },
+
+    avatarVacio: {
+        width: 130,
+        height: 130,
+        borderRadius: 65,
+        backgroundColor: "#555",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    contenedorRegistro: {
+        flexDirection: "row",
+        width: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    datosUsuario: {
+        width: "55%",
+        alignItems: "center",
+    },
+
+    avatarContainer: {
+        width: "40%",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    tituloAvatar: {
+        color: "#ffffff",
+        fontSize: 35,
+        fontFamily: "AmongUs",
+        marginBottom: 15,
+    },
+
+    botonImagen: {
+        borderColor: "#ffffff",
+        borderWidth: 2,
+        width: 180,
+        height: 45,
+        borderRadius: 10,
+        marginTop: 20,
+        justifyContent: "center",
+        alignItems: "center"
     },
 
 
