@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, ImageBackground, TouchableOpacity, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import TarjetaPerfil from '../components/TarjetaPerfil'
-import { getDatabase, onValue, ref } from 'firebase/database'
+import { getDatabase, onValue, ref, update } from 'firebase/database'
 import { onAuthStateChanged, signOut } from 'firebase/auth/web-extension'
 import { auth } from '../firebase/ConfigFirebase'
 
@@ -14,10 +14,9 @@ export default function PerfilScreen({ navigation }: any) {
     const [avatarUrl, setAvatarUrl] = useState("")
 
     function leerUsuario(uid: string) {
+
         const db = getDatabase()
-
         const usuarioRef = ref(db, 'usuarios/' + uid)
-
         onValue(usuarioRef, (snapshot) => {
             const datos = snapshot.val()
 
@@ -29,8 +28,6 @@ export default function PerfilScreen({ navigation }: any) {
                 setAvatarUrl(datos.avatarUrl || "");
             }
 
-            console.log(datos);
-            console.log("Avatar:", datos.avatarUrl);
         })
     }
 
@@ -43,6 +40,19 @@ export default function PerfilScreen({ navigation }: any) {
             }
         })
     }, [])
+
+
+
+    function editarUsuario(uid: string) {
+        const db = getDatabase();
+        update(ref(db, 'usuarios/' + uid),
+            {
+                correo: correo,
+                edad: edad,
+                nick: nick,
+            }
+        );
+    }
 
 
     function cerrarSesion() {
@@ -66,6 +76,7 @@ export default function PerfilScreen({ navigation }: any) {
                     edad={edad}
                     puntos={puntos}
                     image={avatarUrl}
+                    guardarCambios={editarUsuario}
                 />
             </View>
 
@@ -88,7 +99,7 @@ export default function PerfilScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-    
+
     fondo: {
         flex: 1,
     },
@@ -105,12 +116,14 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
     },
+
     contenedorBotones: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 20,
     },
+
     botonVolver: {
         borderColor: '#ffffff',
         borderWidth: 2,
@@ -122,11 +135,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#00000088',
     },
+    
     txtVolver: {
         color: '#ffffff',
         fontFamily: 'AmongUs',
         fontSize: 24,
     },
+
     botonCerrarSesion: {
         borderColor: '#ff3333',
         borderWidth: 2,
@@ -138,9 +153,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#00000088',
     },
+
     txtCerrarSesion: {
         color: '#ff3333',
         fontFamily: 'AmongUs',
         fontSize: 20,
-    }
+    },
+
+    
 })

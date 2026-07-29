@@ -162,7 +162,7 @@ export default function RegistroScreen({ navigation }: any) {
                                 onPress={() => navigation.navigate('Login')}
                             >
                             <Text style={styles.txtLogin}>¿YA TIENES CUENTA? INICIA SESIÓN</Text>
-                         </TouchableOpacity>
+                        </TouchableOpacity>
 
                     </View>
                 </View>

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, Modal, Image } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, Modal, Image, TextInput } from 'react-native'
 
 import React, { useState } from 'react'
 
@@ -8,11 +8,16 @@ type Props = {
     edad: number
     puntos: number
     image?: string
+    guardarCambios: (datos: any) => void
 }
 
-export default function TarjetaPerfil({ nick, correo, edad, puntos, image }: Props) {
+export default function TarjetaPerfil({ nick, correo, edad, puntos, image, guardarCambios }: Props) {
 
     const [ocultarModal, setOcultarModal] = useState(false)
+
+    const [nuevoNick, setNuevoNick] = useState(nick)
+    const [nuevoCorreo, setNuevoCorreo] = useState(correo)
+    const [nuevaEdad, setNuevaEdad] = useState(edad)
 
     console.log("Image recibida:", image);
 
@@ -30,12 +35,18 @@ export default function TarjetaPerfil({ nick, correo, edad, puntos, image }: Pro
 
             <View style={styles.infoTarjeta}>
 
-                <Text style={styles.txtNombre}>{nick}</Text>
-                <Text style={styles.txtEmail}>{correo}</Text>
+                <Text style={styles.txtStatLabel}>USUARIO:</Text>
+                <Text style={styles.tituloModal}>{nick}</Text>
+                <Text style={styles.txtStatLabel}>CORREO:</Text>
+                <Text style={styles.subtituloModal}>{correo}</Text>
+                <Text style={styles.txtStatLabel}>EDAD:</Text>
+                <Text style={styles.subtituloModal}>{edad}</Text>
+                <Text style={styles.txtStatLabel}>PUNTOS:</Text>
+                <Text style={styles.subtituloModal}>{puntos}</Text>
 
                 <View style={styles.btnVerMas}>
                     <Text style={styles.txtVerMas}>
-                        VER STATS
+                        EDITAR DATOS
                     </Text>
                 </View>
 
@@ -49,42 +60,55 @@ export default function TarjetaPerfil({ nick, correo, edad, puntos, image }: Pro
                 <View style={styles.fondoModal}>
                     <View style={styles.cuerpoModal}>
 
-                        <Text style={styles.tituloModal}>{nick}</Text>
-                        <Text style={styles.subtituloModal}>{correo}</Text>
-
                         <View style={styles.cajaStats}>
 
                             <View style={styles.filaStat}>
-                                <Text style={styles.txtStatLabel}>
-                                    EDAD:
-                                </Text>
-
-                                <Text style={styles.txtStatVal}>{edad}</Text>
+                                <TextInput
+                                    placeholder='Editar tu usuario'
+                                    value={nuevoNick}
+                                    onChangeText={setNuevoNick}
+                                    style={styles.input}
+                                />
                             </View>
 
                             <View style={styles.filaStat}>
-                                <Text style={styles.txtStatLabel}>
-                                    PUNTUACIÓN:
-                                </Text>
-
-                                <Text style={styles.txtStatVal}>{puntos}</Text>
+                                <TextInput
+                                    placeholder='Editar tu edad'
+                                    value={nuevoNick}
+                                    onChangeText={setNuevoNick}
+                                    style={styles.input}
+                                />
                             </View>
 
                         </View>
 
                         <TouchableOpacity
                             style={styles.btnCerrar}
+                            onPress={() => {
+                                guardarCambios({
+                                    nick: nuevoNick,
+                                    correo: nuevoCorreo,
+                                    edad: nuevaEdad
+                                })
+
+                                setOcultarModal(false)
+                            }}
+                        >
+                            <Text style={styles.txtBtnCerrar}>Guardar Cambios</Text>
+                        </TouchableOpacity>
+
+
+                        <TouchableOpacity
+                            style={styles.btnCerrar}
                             onPress={() => setOcultarModal(false)}
                         >
-                            <Text style={styles.txtBtnCerrar}>
-                                CERRAR
-                            </Text>
+                            <Text style={styles.txtBtnCerrar}>CERRAR</Text>
                         </TouchableOpacity>
 
                     </View>
                 </View>
             </Modal>
-        </TouchableOpacity>
+        </TouchableOpacity >
     )
 }
 
@@ -108,8 +132,8 @@ const styles = StyleSheet.create({
         width: 320,
         height: 180,
         alignSelf: 'center',
-        flexDirection: 'row',   
-        alignItems: 'center',   
+        flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'center',
     },
 
@@ -195,13 +219,13 @@ const styles = StyleSheet.create({
     txtStatLabel: {
         color: '#ffffff',
         fontFamily: 'AmongUs',
-        fontSize: 16,
+        fontSize: 18,
     },
 
     txtStatVal: {
         color: '#00ff00',
         fontFamily: 'AmongUs',
-        fontSize: 16,
+        fontSize: 20,
     },
 
     btnCerrar: {
@@ -216,5 +240,18 @@ const styles = StyleSheet.create({
         color: '#000000',
         fontFamily: 'AmongUs',
         fontSize: 18,
+    },
+
+    input: {
+        borderWidth: 1,
+        borderColor: '#777',
+        padding: 5,
+        margin: 5,
+        width: 250,
+        height: 45,
+        backgroundColor: 'white',
+        fontFamily: 'AmongUs',
+        fontSize: 30,
+        borderRadius: 10,
     },
 })
