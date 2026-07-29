@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react'
 import { getDatabase, ref, onValue, remove, update } from 'firebase/database'
 import { auth } from '../firebase/ConfigFirebase'
 
+const VIDA_INICIAL = 1000
+
 export default function Lobby({ route, navigation }: any) {
     const { codigoSala, esHost } = route.params
     const [jugadores, setJugadores] = useState<any[]>([])
@@ -45,8 +47,9 @@ export default function Lobby({ route, navigation }: any) {
         updates['salas/' + codigoSala + '/estado'] = 'jugando'
 
         jugadores.forEach((jugador) => {
-            updates['salas/' + codigoSala + '/jugadores/' + jugador.id + '/vida'] = 100
+            updates['salas/' + codigoSala + '/jugadores/' + jugador.id + '/vida'] = VIDA_INICIAL
             updates['salas/' + codigoSala + '/jugadores/' + jugador.id + '/aciertos'] = 0
+            updates['salas/' + codigoSala + '/jugadores/' + jugador.id + '/disparos'] = 0
         })
 
         update(ref(db), updates)
@@ -101,7 +104,7 @@ export default function Lobby({ route, navigation }: any) {
 const styles = StyleSheet.create({
     fondo: {
         flex: 1,
-        padding: 20,
+        padding: 20, 
         alignItems: 'center'
     },
     tituloSala: {

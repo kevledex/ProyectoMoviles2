@@ -112,7 +112,7 @@ export default function RegistroScreen({ navigation }: any) {
 
     return (
         <ImageBackground
-            source={require('../assets/images/FondoMenu.jpg')}
+            source={require('../assets/images/FondoRegistro.png')}
             style={globalStyles.container}
         >
             <View style={styles.contenedorMenu}>

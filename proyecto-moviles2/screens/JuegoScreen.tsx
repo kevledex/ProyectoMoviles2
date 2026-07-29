@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TouchableOpacity, Image, ImageBackground } from 'react-native'
+import { StyleSheet, View, Text, TouchableOpacity, Animated, ImageBackground } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { getDatabase, ref, onValue, update } from 'firebase/database'
 import { auth } from '../firebase/ConfigFirebase'
@@ -6,7 +6,7 @@ import { auth } from '../firebase/ConfigFirebase'
 const VIDA_MAXIMA = 1000
 const DANIO_DISPARO = 10
 const PROBABILIDAD_ENCASQUILLE = 0.6
-const TIEMPO_PARTIDA = 60
+const TIEMPO_PARTIDA = 320
 
 export default function JuegoScreen({ route, navigation }: any) {
   const { codigoSala } = route.params
@@ -17,6 +17,15 @@ export default function JuegoScreen({ route, navigation }: any) {
   const [mensaje, setMensaje] = useState("")
 
   const datosRef = useRef<any>(null)
+  const prevVida1 = useRef<number | null>(null)
+  const prevVida2 = useRef<number | null>(null)
+  const prevDisparos1 = useRef<number | null>(null)
+  const prevDisparos2 = useRef<number | null>(null)
+
+  const animPistola1 = useRef(new Animated.Value(0)).current
+  const animPistola2 = useRef(new Animated.Value(0)).current
+  const animGolpe1 = useRef(new Animated.Value(0)).current
+  const animGolpe2 = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     const db = getDatabase()
@@ -35,6 +44,35 @@ export default function JuegoScreen({ route, navigation }: any) {
 
     return () => unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (!datos) return
+
+    const jugador1Id = datos.host
+    const jugador2Id = Object.keys(datos.jugadores).find((id) => id !== jugador1Id)
+    const v1 = datos.jugadores[jugador1Id]?.vida
+    const v2 = jugador2Id ? datos.jugadores[jugador2Id]?.vida : undefined
+    const d1 = datos.jugadores[jugador1Id]?.disparos
+    const d2 = jugador2Id ? datos.jugadores[jugador2Id]?.disparos : undefined
+
+    if (prevVida1.current !== null && v1 < prevVida1.current) {
+      animarGolpe(animGolpe1)
+    }
+    if (prevVida2.current !== null && v2 !== undefined && v2 < prevVida2.current) {
+      animarGolpe(animGolpe2)
+    }
+    if (prevDisparos1.current !== null && d1 > prevDisparos1.current) {
+      animarRetroceso(animPistola1)
+    }
+    if (prevDisparos2.current !== null && d2 !== undefined && d2 > prevDisparos2.current) {
+      animarRetroceso(animPistola2)
+    }
+
+    prevVida1.current = v1 ?? null
+    prevVida2.current = v2 ?? null
+    prevDisparos1.current = d1 ?? null
+    prevDisparos2.current = d2 ?? null
+  }, [datos])
 
   useEffect(() => {
     if (!datos || datos.estado !== 'jugando') return
@@ -74,6 +112,20 @@ export default function JuegoScreen({ route, navigation }: any) {
     update(ref(db), updates)
   }
 
+  function animarRetroceso(anim: Animated.Value) {
+    Animated.sequence([
+      Animated.timing(anim, { toValue: -15, duration: 80, useNativeDriver: true }),
+      Animated.timing(anim, { toValue: 0, duration: 120, useNativeDriver: true })
+    ]).start()
+  }
+
+  function animarGolpe(anim: Animated.Value) {
+    Animated.sequence([
+      Animated.timing(anim, { toValue: -14, duration: 90, useNativeDriver: true }),
+      Animated.spring(anim, { toValue: 0, friction: 3, useNativeDriver: true })
+    ]).start()
+  }
+
   if (!datos) {
     return (
       <View style={styles.cargando}>
@@ -94,22 +146,27 @@ export default function JuegoScreen({ route, navigation }: any) {
   function disparar() {
     if (!partidaActiva || !jugador2 || miVida <= 0) return
 
+    const miId = soyJugador1 ? jugador1Id : jugador2Id
+    const misDisparos = (soyJugador1 ? jugador1.disparos : jugador2.disparos) || 0
+
+    const db = getDatabase()
+    const updates: any = {}
+    updates['salas/' + codigoSala + '/jugadores/' + miId + '/disparos'] = misDisparos + 1
+
     const seEncasquillo = Math.random() < PROBABILIDAD_ENCASQUILLE
     if (seEncasquillo) {
+      update(ref(db), updates)
       setMensaje("SE ENCASQUILLÓ")
       setTimeout(() => setMensaje(""), 800)
       return
     }
 
-    const miId = soyJugador1 ? jugador1Id : jugador2Id
     const rivalId = soyJugador1 ? jugador2Id : jugador1Id
     const rival = soyJugador1 ? jugador2 : jugador1
     const misAciertos = (soyJugador1 ? jugador1.aciertos : jugador2.aciertos) || 0
 
     const nuevaVidaRival = Math.max(0, rival.vida - DANIO_DISPARO)
 
-    const db = getDatabase()
-    const updates: any = {}
     updates['salas/' + codigoSala + '/jugadores/' + rivalId + '/vida'] = nuevaVidaRival
     updates['salas/' + codigoSala + '/jugadores/' + miId + '/aciertos'] = misAciertos + 1
 
@@ -125,26 +182,28 @@ export default function JuegoScreen({ route, navigation }: any) {
     <ImageBackground source={require('../assets/images/FondoJuego.png')} style={styles.fondo}>
       <Text style={styles.txtTiempo}>{formatearTiempo(tiempo)}</Text>
 
-      {mensaje !== "" && <Text style={styles.txtMensaje}>{mensaje}</Text>}
+      <View style={styles.espacioMensaje}>
+        {mensaje !== "" && <Text style={styles.txtMensaje}>{mensaje}</Text>}
+      </View>
 
       <View style={styles.contenedorJugadores}>
 
         <View style={styles.columna}>
           <Text style={styles.txtNick}>{jugador1.nick}</Text>
           <View style={styles.barraFondo}>
-            <View style={[styles.barraVida, { width: (jugador1.vida + '%') as any }]} />
+            <View style={[styles.barraVida, { width: (jugador1.vida / VIDA_MAXIMA * 100 + '%') as any }]} />
           </View>
 
           <View style={styles.filaCuerpo}>
-            <Image
+            <Animated.Image
               source={jugador1.vida > 0
                 ? require('../assets/images/TripulanteRojo.png')
                 : require('../assets/images/TripulanteMuerto.png')}
-              style={styles.tripulante}
+              style={[styles.tripulante, { transform: [{ translateY: animGolpe1 }] }]}
             />
-            <Image
+            <Animated.Image
               source={require('../assets/images/PistolaRojo.png')}
-              style={styles.pistola}
+              style={[styles.pistola, { transform: [{ translateX: animPistola1 }] }]}
             />
           </View>
 
@@ -160,19 +219,19 @@ export default function JuegoScreen({ route, navigation }: any) {
         <View style={styles.columna}>
           <Text style={styles.txtNick}>{jugador2 ? jugador2.nick : "..."}</Text>
           <View style={styles.barraFondo}>
-            <View style={[styles.barraVida, { width: ((jugador2 ? jugador2.vida : 0) + '%') as any }]} />
+            <View style={[styles.barraVida, { width: ((jugador2 ? jugador2.vida : 0) / VIDA_MAXIMA * 100 + '%') as any }]} />
           </View>
 
           <View style={styles.filaCuerpo}>
-            <Image
+            <Animated.Image
               source={require('../assets/images/PistolaAzul.png')}
-              style={[styles.pistola, styles.pistolaVolteada, { transform: [{ scaleX: -1 }] }]}
+              style={[styles.pistola, styles.pistolaVolteada, { transform: [{ scaleX: -1 }, { translateX: animPistola2 }] }]}
             />
-            <Image
+            <Animated.Image
               source={jugador2 && jugador2.vida > 0
                 ? require('../assets/images/TripulanteAzul.png')
                 : require('../assets/images/TripulanteMuerto.png')}
-              style={styles.tripulante}
+              style={[styles.tripulante, { transform: [{ translateY: animGolpe2 }] }]}
             />
           </View>
 
@@ -221,11 +280,15 @@ const styles = StyleSheet.create({
     fontFamily: 'AmongUs',
     marginBottom: 10
   },
+  espacioMensaje: {
+    height: 30,
+    justifyContent: 'center',
+    marginBottom: 10
+  },
   txtMensaje: {
     color: '#ff3333',
     fontSize: 22,
-    fontFamily: 'AmongUs',
-    marginBottom: 10
+    fontFamily: 'AmongUs'
   },
   contenedorJugadores: {
     flex: 1,
