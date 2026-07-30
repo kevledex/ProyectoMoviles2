@@ -250,122 +250,66 @@ const styles = StyleSheet.create({
         marginBottom: 7,
         textAlign: 'center',
         fontFamily: 'AmongUs',
-
     },
-
-
-
-
 
     subtituloModal: {
-
         color: '#ffffff',
-
         fontSize: 22,
-
         marginBottom: 7,
-
         textAlign: 'center',
-
         fontFamily: 'AmongUs',
-
     },
-
-
 
     txtStatLabel: {
-
         color: '#C7C6C6',
-
         fontSize: 22,
-
         marginBottom: 7,
-
         textAlign: 'center',
-
         fontFamily: 'AmongUs',
-
     },
-
-
 
     cajaStats: {
-
         width: '100%',
-
         backgroundColor: '#222222',
-
         borderRadius: 12,
-
         padding: 10,
-
         marginVertical: 15,
-
     },
-
-
 
     filaStat: {
-
         flexDirection: 'row',
-
         justifyContent: 'center',
-
         marginVertical: 5,
-
     },
-
-
 
     btnCerrar: {
-
-        backgroundColor: '#ffffff',
-
-        paddingVertical: 10,
-
-        width: '100%',
-
-        borderRadius: 8,
-
+        borderColor: '#ffffff',
+        borderWidth: 2,
+        borderRadius: 10,
+        margin: 10,
+        height: 50,
+        width: 130,
+        justifyContent: 'center',
         alignItems: 'center',
-
+        backgroundColor: '#00000088',
     },
 
-
-
     txtBtnCerrar: {
-
-        color: '#000000',
-
+        color: '#ffffff',
         fontFamily: 'AmongUs',
-
-        fontSize: 18,
-
+        fontSize: 24,
     },
 
     input: {
-
         borderWidth: 1,
-
         borderColor: '#777',
-
         paddingHorizontal: 10,
-
         width: '100%',
-
-        height: 45,
-
         backgroundColor: 'white',
-
         fontFamily: 'AmongUs',
-
         fontSize: 20,
-
         borderRadius: 10,
-
         color: '#000',
-
     },
 
 })
-
