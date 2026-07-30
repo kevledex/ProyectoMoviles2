@@ -2,11 +2,19 @@ import { StyleSheet, View, Text, TouchableOpacity, Animated, ImageBackground } f
 import React, { useEffect, useRef, useState } from 'react'
 import { getDatabase, ref, onValue, update } from 'firebase/database'
 import { auth } from '../firebase/ConfigFirebase'
+import { useAudioPlayer } from 'expo-audio'
 
 const VIDA_MAXIMA = 1000
-const DANIO_DISPARO = 10
+const DANIO_DISPARO = 50
+const DANIO_RAFAGA = 150
 const PROBABILIDAD_ENCASQUILLE = 0.6
-const TIEMPO_PARTIDA = 320
+const TIEMPO_PARTIDA = 60
+const ESPERA_DISPARO = 400
+const ESPERA_RAFAGA = 2500
+
+const musicaJuego = require('../assets/audio/FondoJuego.mp3')
+const sonidoDisparo = require('../assets/audio/Disparo.mp3')
+const sonidoRafaga = require('../assets/audio/Rafaga.mp3')
 
 export default function JuegoScreen({ route, navigation }: any) {
   const { codigoSala } = route.params
@@ -15,8 +23,15 @@ export default function JuegoScreen({ route, navigation }: any) {
   const [datos, setDatos] = useState<any>(null)
   const [tiempo, setTiempo] = useState(TIEMPO_PARTIDA)
   const [mensaje, setMensaje] = useState("")
+  const [esperandoDisparo, setEsperandoDisparo] = useState(false)
+  const [esperandoRafaga, setEsperandoRafaga] = useState(false)
+
+  const playerMusica = useAudioPlayer(musicaJuego)
+  const playerDisparo = useAudioPlayer(sonidoDisparo)
+  const playerRafaga = useAudioPlayer(sonidoRafaga)
 
   const datosRef = useRef<any>(null)
+  const activo = useRef(true)
   const prevVida1 = useRef<number | null>(null)
   const prevVida2 = useRef<number | null>(null)
   const prevDisparos1 = useRef<number | null>(null)
@@ -26,6 +41,19 @@ export default function JuegoScreen({ route, navigation }: any) {
   const animPistola2 = useRef(new Animated.Value(0)).current
   const animGolpe1 = useRef(new Animated.Value(0)).current
   const animGolpe2 = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    playerMusica.loop = true
+    playerMusica.play()
+
+    return () => {
+      activo.current = false
+      try {
+        playerMusica.pause()
+      } catch (error) {
+      }
+    }
+  }, [])
 
   useEffect(() => {
     const db = getDatabase()
@@ -54,6 +82,8 @@ export default function JuegoScreen({ route, navigation }: any) {
     const v2 = jugador2Id ? datos.jugadores[jugador2Id]?.vida : undefined
     const d1 = datos.jugadores[jugador1Id]?.disparos
     const d2 = jugador2Id ? datos.jugadores[jugador2Id]?.disparos : undefined
+    const t1 = datos.jugadores[jugador1Id]?.tipo
+    const t2 = jugador2Id ? datos.jugadores[jugador2Id]?.tipo : undefined
 
     if (prevVida1.current !== null && v1 < prevVida1.current) {
       animarGolpe(animGolpe1)
@@ -62,10 +92,12 @@ export default function JuegoScreen({ route, navigation }: any) {
       animarGolpe(animGolpe2)
     }
     if (prevDisparos1.current !== null && d1 > prevDisparos1.current) {
-      animarRetroceso(animPistola1)
+      animarRetroceso(animPistola1, t1)
+      reproducirSonido(t1)
     }
     if (prevDisparos2.current !== null && d2 !== undefined && d2 > prevDisparos2.current) {
-      animarRetroceso(animPistola2)
+      animarRetroceso(animPistola2, t2)
+      reproducirSonido(t2)
     }
 
     prevVida1.current = v1 ?? null
@@ -112,14 +144,33 @@ export default function JuegoScreen({ route, navigation }: any) {
     update(ref(db), updates)
   }
 
-  function animarRetroceso(anim: Animated.Value) {
+  function reproducirSonido(tipo: string) {
+    if (!activo.current) return
+
+    try {
+      const player = tipo === 'rafaga' ? playerRafaga : playerDisparo
+      player.seekTo(0)
+      player.play()
+    } catch (error) {
+    }
+  }
+
+  function animarRetroceso(anim: Animated.Value, tipo: string) {
+    const fuerza = tipo === 'rafaga' ? -30 : -15
+
+    anim.stopAnimation()
+    anim.setValue(0)
+
     Animated.sequence([
-      Animated.timing(anim, { toValue: -15, duration: 80, useNativeDriver: true }),
+      Animated.timing(anim, { toValue: fuerza, duration: 80, useNativeDriver: true }),
       Animated.timing(anim, { toValue: 0, duration: 120, useNativeDriver: true })
     ]).start()
   }
 
   function animarGolpe(anim: Animated.Value) {
+    anim.stopAnimation()
+    anim.setValue(0)
+
     Animated.sequence([
       Animated.timing(anim, { toValue: -14, duration: 90, useNativeDriver: true }),
       Animated.spring(anim, { toValue: 0, friction: 3, useNativeDriver: true })
@@ -143,8 +194,18 @@ export default function JuegoScreen({ route, navigation }: any) {
   const miVida = soyJugador1 ? jugador1.vida : jugador2?.vida
   const partidaActiva = datos.estado === 'jugando'
 
-  function disparar() {
+  function disparar(tipo: string) {
     if (!partidaActiva || !jugador2 || miVida <= 0) return
+
+    if (tipo === 'rafaga') {
+      if (esperandoRafaga) return
+      setEsperandoRafaga(true)
+      setTimeout(() => setEsperandoRafaga(false), ESPERA_RAFAGA)
+    } else {
+      if (esperandoDisparo) return
+      setEsperandoDisparo(true)
+      setTimeout(() => setEsperandoDisparo(false), ESPERA_DISPARO)
+    }
 
     const miId = soyJugador1 ? jugador1Id : jugador2Id
     const misDisparos = (soyJugador1 ? jugador1.disparos : jugador2.disparos) || 0
@@ -152,6 +213,7 @@ export default function JuegoScreen({ route, navigation }: any) {
     const db = getDatabase()
     const updates: any = {}
     updates['salas/' + codigoSala + '/jugadores/' + miId + '/disparos'] = misDisparos + 1
+    updates['salas/' + codigoSala + '/jugadores/' + miId + '/tipo'] = tipo
 
     const seEncasquillo = Math.random() < PROBABILIDAD_ENCASQUILLE
     if (seEncasquillo) {
@@ -164,8 +226,9 @@ export default function JuegoScreen({ route, navigation }: any) {
     const rivalId = soyJugador1 ? jugador2Id : jugador1Id
     const rival = soyJugador1 ? jugador2 : jugador1
     const misAciertos = (soyJugador1 ? jugador1.aciertos : jugador2.aciertos) || 0
+    const danio = tipo === 'rafaga' ? DANIO_RAFAGA : DANIO_DISPARO
 
-    const nuevaVidaRival = Math.max(0, rival.vida - DANIO_DISPARO)
+    const nuevaVidaRival = Math.max(0, rival.vida - danio)
 
     updates['salas/' + codigoSala + '/jugadores/' + rivalId + '/vida'] = nuevaVidaRival
     updates['salas/' + codigoSala + '/jugadores/' + miId + '/aciertos'] = misAciertos + 1
@@ -209,9 +272,19 @@ export default function JuegoScreen({ route, navigation }: any) {
 
           <View style={styles.espacioBoton}>
             {soyJugador1 && (
-              <TouchableOpacity style={styles.boton} onPress={disparar}>
-                <Text style={styles.txtBoton}>DISPARAR</Text>
-              </TouchableOpacity>
+              <View>
+                <TouchableOpacity
+                  style={[styles.boton, esperandoDisparo && styles.botonEspera]}
+                  onPress={() => disparar('normal')}>
+                  <Text style={styles.txtBoton}>DISPARAR</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.boton, styles.botonRafaga, esperandoRafaga && styles.botonEspera]}
+                  onPress={() => disparar('rafaga')}>
+                  <Text style={styles.txtBoton}>RÁFAGA</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         </View>
@@ -237,9 +310,19 @@ export default function JuegoScreen({ route, navigation }: any) {
 
           <View style={styles.espacioBoton}>
             {!soyJugador1 && (
-              <TouchableOpacity style={styles.boton} onPress={disparar}>
-                <Text style={styles.txtBoton}>DISPARAR</Text>
-              </TouchableOpacity>
+              <View>
+                <TouchableOpacity
+                  style={[styles.boton, esperandoDisparo && styles.botonEspera]}
+                  onPress={() => disparar('normal')}>
+                  <Text style={styles.txtBoton}>DISPARAR</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.boton, styles.botonRafaga, esperandoRafaga && styles.botonEspera]}
+                  onPress={() => disparar('rafaga')}>
+                  <Text style={styles.txtBoton}>RÁFAGA</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         </View>
@@ -326,7 +409,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 110,
-    marginBottom: 15
+    marginBottom: 5
   },
   tripulante: {
     width: 110,
@@ -346,15 +429,24 @@ const styles = StyleSheet.create({
     borderColor: '#ffffff',
     borderWidth: 2,
     width: 140,
-    height: 55,
+    height: 50,
     borderRadius: 10,
+    marginBottom: 8,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#00000088'
   },
+  botonRafaga: {
+    borderColor: '#ffcc00',
+    backgroundColor: '#553300aa'
+  },
+  botonEspera: {
+    opacity: 0.4
+  },
   espacioBoton: {
     width: 140,
-    height: 55,
+    height: 110,
+    marginBottom: 40,
     justifyContent: 'center',
     alignItems: 'center'
   },

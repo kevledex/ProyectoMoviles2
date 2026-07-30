@@ -2,10 +2,14 @@ import { StyleSheet, Text, View, TouchableOpacity, ImageBackground } from 'react
 import React, { useEffect, useRef, useState } from 'react'
 import { getDatabase, ref, get, set } from 'firebase/database'
 import { auth } from '../firebase/ConfigFirebase'
+import { useAudioPlayer } from 'expo-audio'
 
 const PUNTOS_POR_ACIERTO = 5
 const PUNTOS_GANADOR = 50
 const PUNTOS_PARTICIPACION = 10
+
+const sonidoVictoria = require('../assets/audio/Victoria.mp3')
+const sonidoDerrota = require('../assets/audio/Derrota.mp3')
 
 export default function ResultadosScreen({ route, navigation }: any) {
     const { codigoSala } = route.params
@@ -14,6 +18,11 @@ export default function ResultadosScreen({ route, navigation }: any) {
     const [datos, setDatos] = useState<any>(null)
     const [puntosGanados, setPuntosGanados] = useState(0)
     const yaGuardado = useRef(false)
+    const yaSono = useRef(false)
+    const activo = useRef(true)
+
+    const playerVictoria = useAudioPlayer(sonidoVictoria)
+    const playerDerrota = useAudioPlayer(sonidoDerrota)
 
     useEffect(() => {
         const db = getDatabase()
@@ -24,8 +33,25 @@ export default function ResultadosScreen({ route, navigation }: any) {
             const valor = snapshot.val()
             setDatos(valor)
             guardarPuntos(valor)
+            reproducirResultado(valor.ganador === uid)
         })
+
+        return () => {
+            activo.current = false
+        }
     }, [])
+
+    function reproducirResultado(gano: boolean) {
+        if (yaSono.current || !activo.current) return
+        yaSono.current = true
+
+        try {
+            const player = gano ? playerVictoria : playerDerrota
+            player.seekTo(0)
+            player.play()
+        } catch (error) {
+        }
+    }
 
     async function guardarPuntos(valor: any) {
         if (yaGuardado.current || !uid) return
@@ -60,7 +86,12 @@ export default function ResultadosScreen({ route, navigation }: any) {
     const misAciertos = datos.jugadores[uid]?.aciertos || 0
 
     return (
-        <ImageBackground source={require('../assets/images/FondoResultados.png')} style={styles.fondo}>
+        <ImageBackground
+            source={gane
+                ? require('../assets/images/FondoGanaste.png')
+                : require('../assets/images/FondoPerdiste.png')}
+            style={styles.fondo}
+        >
             <Text style={[styles.txtResultado, gane ? styles.txtGano : styles.txtPerdio]}>
                 {gane ? "GANASTE" : "PERDISTE"}
             </Text>
