@@ -74,6 +74,7 @@ export default function PerfilScreen({ navigation }: any) {
                     edad={edad}
                     puntos={puntos}
                     image={avatarUrl}
+                    uid={uidUsuario}
                     setNick={setNick}
                     setEdad={setEdad}
                     editar={() => editarUsuario(uidUsuario)}

@@ -1,31 +1,88 @@
 import { StyleSheet, Text, View, TouchableOpacity, Modal, Image, TextInput, Alert } from 'react-native'
 import React, { useState, useEffect } from 'react'
 
+import * as ImagePicker from 'expo-image-picker';
+import { File } from 'expo-file-system';
+import { supabase } from '../supabase/config';
+
 type Props = {
     nick: string
     correo: string
     edad: number
     puntos: number
     image?: string
+    uid: string
     setNick: (text: string) => void
     setEdad: (text: any) => void
     editar: () => void
 }
 
-export default function TarjetaPerfil({nick, correo, edad, puntos, image, setNick, setEdad, editar}: Props) {
+export default function TarjetaPerfil({ nick, correo, edad, puntos, image, uid, setNick, setEdad, editar }: Props) {
+
+    //Cambiar cache de la imagen
+    const [cache, setCache] = useState(Date.now());
+
 
     const [ocultarModal, setOcultarModal] = useState(false)
 
+    async function editarFotoPerfil() {
+        const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permiso.granted) {
+            Alert.alert("Permiso requerido", "Debes permitir acceder a la galería.");
+            return;
+        }
+
+        const resultado = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+        });
+
+        if (resultado.canceled) return;
+
+        const nuevaImagen = resultado.assets[0].uri;
+        const bytes = await new File(nuevaImagen).bytes();
+        const ruta = `usuarios/${uid}/avatar.png`;
+        const { error } = await supabase
+            .storage
+            .from("jugadores")
+            .upload(ruta, bytes, {
+                contentType: "image/jpeg",
+                upsert: true,
+            });
+
+        if (error) {
+            Alert.alert("Error", "No se pudo actualizar la imagen.");
+            return;
+        }
+
+        //Para recargae de la foto de perfil
+        setCache(Date.now());
+
+        Alert.alert("Éxito", "Foto actualizada.");
+    }
+
     return (
-        <TouchableOpacity
-            onPress={() => setOcultarModal(true)}
-            style={styles.tarjeta}
-            activeOpacity={0.9}
-        >
-            <Image
-                source={{ uri: image || 'https://via.placeholder.com/120' }}
-                style={styles.avatar}
-            />
+        <View style={styles.tarjeta}>
+
+            <View style={styles.infoImg}>
+                <Image
+                    source={{
+                        uri: image
+                            ? `${image}?v=${cache}`
+                            : 'https://via.placeholder.com/120'
+                    }}
+                    style={styles.avatar}
+                />
+
+                <TouchableOpacity
+                    style={styles.btnImg}
+                    onPress={editarFotoPerfil}
+                >
+                    <Text style={styles.txtVerMas}>EDITAR FOTO PERFIL</Text>
+                </TouchableOpacity>
+            </View>
 
             <View style={styles.infoTarjeta}>
                 <Text style={styles.subtituloModal}>USUARIO:
@@ -40,13 +97,17 @@ export default function TarjetaPerfil({nick, correo, edad, puntos, image, setNic
                     <Text style={styles.txtStatLabel}> {edad}</Text>
                 </Text>
 
-                <Text style={styles.subtituloModal}>PUNTAJE:  
+                <Text style={styles.subtituloModal}>PUNTAJE:
                     <Text style={styles.puntaje}> {puntos}</Text>
                 </Text>
 
-                <View style={styles.btnVerMas}>
+                <TouchableOpacity
+                    style={styles.btnVerMas}
+                    onPress={() => setOcultarModal(true)}
+                >
                     <Text style={styles.txtVerMas}>EDITAR DATOS</Text>
-                </View>
+                </TouchableOpacity>
+
             </View>
 
             <Modal
@@ -100,7 +161,7 @@ export default function TarjetaPerfil({nick, correo, edad, puntos, image, setNic
 
                 </View>
             </Modal>
-        </TouchableOpacity >
+        </View >
     )
 }
 
@@ -114,7 +175,7 @@ const styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: "#fff",
         alignSelf: 'center',
-        marginRight: 15,
+        marginRight: 29,
         borderRadius: 5,
     },
 
@@ -138,8 +199,22 @@ const styles = StyleSheet.create({
         flex: 1,
     },
 
+    infoImg: {
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        flex: 1,
+    },
+
     btnVerMas: {
         marginTop: 12,
+        backgroundColor: '#ffffff22',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 6,
+    },
+
+    btnImg: {
+        margin: 12,
         backgroundColor: '#ffffff22',
         paddingVertical: 8,
         paddingHorizontal: 16,
@@ -175,9 +250,10 @@ const styles = StyleSheet.create({
         marginBottom: 7,
         textAlign: 'center',
         fontFamily: 'AmongUs',
+
     },
 
-   
+
 
 
 
@@ -291,5 +367,5 @@ const styles = StyleSheet.create({
 
     },
 
-}) 
+})
 
