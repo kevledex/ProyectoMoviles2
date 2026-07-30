@@ -117,7 +117,7 @@ export default function SalaScreen({ navigation }: any) {
                 </View>
             </View>
 
-            <TouchableOpacity style={styles.botonVolver} onPress={() => navigation.goBack()}>
+            <TouchableOpacity style={styles.botonVolver} onPress={() => navigation.navigate('Menu')}>
                 <Text style={styles.txtBotonPequeno}>VOLVER</Text>
             </TouchableOpacity>
         </ImageBackground>
