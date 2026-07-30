@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TouchableOpacity, Animated, ImageBackground } from 'react-native'
+import { StyleSheet, View, Text, TouchableOpacity, Animated, ImageBackground, Vibration } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { getDatabase, ref, onValue, update } from 'firebase/database'
 import { auth } from '../firebase/ConfigFirebase'
@@ -218,6 +218,8 @@ export default function JuegoScreen({ route, navigation }: any) {
     const seEncasquillo = Math.random() < PROBABILIDAD_ENCASQUILLE
     if (seEncasquillo) {
       update(ref(db), updates)
+
+      Vibration.vibrate([300, 1000, 200, 500])
       setMensaje("SE ENCASQUILLÓ")
       setTimeout(() => setMensaje(""), 800)
       return
