@@ -8,6 +8,7 @@ export default function MenuScreen({ navigation }: any) {
             <View style={styles.contenedorMenu}>
 
                 <Text style={styles.titulo}>AMONG US!</Text>
+                <Text style={styles.subtitulo}>Shooter</Text>
 
                 <View style={styles.contenedorBotones}>
 
@@ -40,8 +41,14 @@ const styles = StyleSheet.create({
     titulo: {
         color: '#ffffff',
         fontSize: 90,
-        marginTop: 20,
+        marginTop: 10,
         fontFamily: 'AmongUs'
+    },
+    subtitulo: {
+        color: '#ffffff',
+        fontSize: 40,
+        marginTop: -20,
+        marginBottom: 15,        fontFamily: 'AmongUs'
     },
     contenedorBotones: {
         alignItems: 'center',
