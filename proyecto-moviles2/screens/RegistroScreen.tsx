@@ -94,8 +94,7 @@ export default function RegistroScreen({ navigation }: any) {
                 });
 
         if (error) {
-            console.log(error);
-            return "";
+            console.log("Error al subir a Supabase:", error);
         }
 
         const url = supabase
@@ -104,7 +103,6 @@ export default function RegistroScreen({ navigation }: any) {
             .getPublicUrl(ruta)
             .data
             .publicUrl;
-            
 
         return url;
     }

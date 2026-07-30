@@ -1,6 +1,9 @@
-import { StyleSheet, Text, View, TouchableOpacity, Modal, Image, TextInput } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, Modal, Image, TextInput, Alert } from 'react-native'
+import React, { useState, useEffect } from 'react'
 
-import React, { useState } from 'react'
+import * as ImagePicker from 'expo-image-picker';
+import { File } from 'expo-file-system';
+import { supabase } from '../supabase/config';
 
 type Props = {
     nick: string
@@ -8,47 +11,102 @@ type Props = {
     edad: number
     puntos: number
     image?: string
-    guardarCambios: (datos: any) => void
+    uid: string
+    setNick: (text: string) => void
+    setEdad: (text: any) => void
+    editar: () => void
 }
 
-export default function TarjetaPerfil({ nick, correo, edad, puntos, image, guardarCambios }: Props) {
+export default function TarjetaPerfil({ nick, correo, edad, puntos, image, uid, setNick, setEdad, editar }: Props) {
+
+    //Cambiar cache de la imagen
+    const [cache, setCache] = useState(Date.now());
+
 
     const [ocultarModal, setOcultarModal] = useState(false)
 
-    const [nuevoNick, setNuevoNick] = useState(nick)
-    const [nuevoCorreo, setNuevoCorreo] = useState(correo)
-    const [nuevaEdad, setNuevaEdad] = useState(edad)
+    async function editarFotoPerfil() {
+        const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permiso.granted) {
+            Alert.alert("Permiso requerido", "Debes permitir acceder a la galería.");
+            return;
+        }
 
-    console.log("Image recibida:", image);
+        const resultado = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+        });
+
+        if (resultado.canceled) return;
+
+        const nuevaImagen = resultado.assets[0].uri;
+        const bytes = await new File(nuevaImagen).bytes();
+        const ruta = `usuarios/${uid}/avatar.png`;
+        const { error } = await supabase
+            .storage
+            .from("jugadores")
+            .upload(ruta, bytes, {
+                contentType: "image/jpeg",
+                upsert: true,
+            });
+
+        if (error) {
+            Alert.alert("Error", "No se pudo actualizar la imagen.");
+            return;
+        }
+
+        //Para recargae de la foto de perfil
+        setCache(Date.now());
+
+        Alert.alert("Éxito", "Foto actualizada.");
+    }
 
     return (
+        <View style={styles.tarjeta}>
 
-        <TouchableOpacity
-            onPress={() => setOcultarModal(true)}
-            style={styles.tarjeta}
-            activeOpacity={0.9}
-        >
-            <Image
-                source={{ uri: image }}
-                style={styles.avatar}
-            />
+            <View style={styles.infoImg}>
+                <Image
+                    source={{
+                        uri: image
+                            ? `${image}?v=${cache}`
+                            : 'https://via.placeholder.com/120'
+                    }}
+                    style={styles.avatar}
+                />
+
+                <TouchableOpacity
+                    style={styles.btnImg}
+                    onPress={editarFotoPerfil}
+                >
+                    <Text style={styles.txtVerMas}>EDITAR FOTO PERFIL</Text>
+                </TouchableOpacity>
+            </View>
 
             <View style={styles.infoTarjeta}>
+                <Text style={styles.subtituloModal}>USUARIO:
+                    <Text style={styles.txtStatLabel}> {nick}</Text>
+                </Text>
 
-                <Text style={styles.txtStatLabel}>USUARIO:</Text>
-                <Text style={styles.tituloModal}>{nick}</Text>
-                <Text style={styles.txtStatLabel}>CORREO:</Text>
-                <Text style={styles.subtituloModal}>{correo}</Text>
-                <Text style={styles.txtStatLabel}>EDAD:</Text>
-                <Text style={styles.subtituloModal}>{edad}</Text>
-                <Text style={styles.txtStatLabel}>PUNTOS:</Text>
-                <Text style={styles.subtituloModal}>{puntos}</Text>
+                <Text style={styles.subtituloModal}>CORREO:
+                    <Text style={styles.txtStatLabel}> {correo}</Text>
+                </Text>
 
-                <View style={styles.btnVerMas}>
-                    <Text style={styles.txtVerMas}>
-                        EDITAR DATOS
-                    </Text>
-                </View>
+                <Text style={styles.subtituloModal}>EDAD:
+                    <Text style={styles.txtStatLabel}> {edad}</Text>
+                </Text>
+
+                <Text style={styles.subtituloModal}>PUNTAJE:
+                    <Text style={styles.puntaje}> {puntos}</Text>
+                </Text>
+
+                <TouchableOpacity
+                    style={styles.btnVerMas}
+                    onPress={() => setOcultarModal(true)}
+                >
+                    <Text style={styles.txtVerMas}>EDITAR DATOS</Text>
+                </TouchableOpacity>
 
             </View>
 
@@ -57,25 +115,26 @@ export default function TarjetaPerfil({ nick, correo, edad, puntos, image, guard
                 transparent
                 animationType="fade"
             >
+
                 <View style={styles.fondoModal}>
                     <View style={styles.cuerpoModal}>
-
                         <View style={styles.cajaStats}>
-
                             <View style={styles.filaStat}>
                                 <TextInput
                                     placeholder='Editar tu usuario'
-                                    value={nuevoNick}
-                                    onChangeText={setNuevoNick}
+                                    placeholderTextColor="#888"
+                                    value={nick}
+                                    onChangeText={setNick}
                                     style={styles.input}
                                 />
                             </View>
-
                             <View style={styles.filaStat}>
                                 <TextInput
                                     placeholder='Editar tu edad'
-                                    value={nuevoNick}
-                                    onChangeText={setNuevoNick}
+                                    placeholderTextColor="#888"
+                                    value={edad ? edad.toString() : ''}
+                                    keyboardType='numeric'
+                                    onChangeText={(val) => setEdad(val ? parseInt(val, 10) : 0)}
                                     style={styles.input}
                                 />
                             </View>
@@ -83,20 +142,14 @@ export default function TarjetaPerfil({ nick, correo, edad, puntos, image, guard
                         </View>
 
                         <TouchableOpacity
-                            style={styles.btnCerrar}
+                            style={[styles.btnCerrar, { marginBottom: 10 }]}
                             onPress={() => {
-                                guardarCambios({
-                                    nick: nuevoNick,
-                                    correo: nuevoCorreo,
-                                    edad: nuevaEdad
-                                })
-
+                                editar()
                                 setOcultarModal(false)
                             }}
                         >
                             <Text style={styles.txtBtnCerrar}>Guardar Cambios</Text>
                         </TouchableOpacity>
-
 
                         <TouchableOpacity
                             style={styles.btnCerrar}
@@ -104,23 +157,26 @@ export default function TarjetaPerfil({ nick, correo, edad, puntos, image, guard
                         >
                             <Text style={styles.txtBtnCerrar}>CERRAR</Text>
                         </TouchableOpacity>
-
                     </View>
+
                 </View>
             </Modal>
-        </TouchableOpacity >
+        </View >
     )
 }
+
+
 
 const styles = StyleSheet.create({
 
     avatar: {
-        width: 120,
-        height: 120,
+        width: 100,
+        height: 100,
         borderWidth: 3,
         borderColor: "#fff",
         alignSelf: 'center',
-        marginRight: 30,
+        marginRight: 29,
+        borderRadius: 5,
     },
 
     tarjeta: {
@@ -129,8 +185,8 @@ const styles = StyleSheet.create({
         borderColor: "#ffffff",
         borderRadius: 12,
         padding: 15,
-        width: 320,
-        height: 180,
+        width: 340,
+        height: 210,
         alignSelf: 'center',
         flexDirection: 'row',
         alignItems: 'center',
@@ -140,25 +196,25 @@ const styles = StyleSheet.create({
     infoTarjeta: {
         justifyContent: 'center',
         alignItems: 'flex-start',
-        alignSelf: 'center',
+        flex: 1,
     },
 
-    txtNombre: {
-        color: '#ffffff',
-        fontFamily: 'AmongUs',
-        fontSize: 36,
-    },
-
-    txtEmail: {
-        color: '#aaaaaa',
-        fontSize: 18,
-        marginTop: 4,
-        textAlign: 'center',
-        fontFamily: 'AmongUs',
+    infoImg: {
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        flex: 1,
     },
 
     btnVerMas: {
         marginTop: 12,
+        backgroundColor: '#ffffff22',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 6,
+    },
+
+    btnImg: {
+        margin: 12,
         backgroundColor: '#ffffff22',
         paddingVertical: 8,
         paddingHorizontal: 16,
@@ -180,7 +236,7 @@ const styles = StyleSheet.create({
 
     cuerpoModal: {
         backgroundColor: '#121212',
-        width: '75%',
+        width: '85%',
         borderRadius: 20,
         borderWidth: 3,
         borderColor: '#ffffff',
@@ -188,70 +244,128 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
 
-    tituloModal: {
-        fontFamily: 'AmongUs',
-        color: '#ffffff',
-        fontSize: 32,
+    puntaje: {
+        color: '#FFD700',
+        fontSize: 25,
+        marginBottom: 7,
         textAlign: 'center',
+        fontFamily: 'AmongUs',
+
     },
+
+
+
+
 
     subtituloModal: {
-        color: '#aaaaaa',
-        fontSize: 14,
-        marginBottom: 15,
+
+        color: '#ffffff',
+
+        fontSize: 22,
+
+        marginBottom: 7,
+
         textAlign: 'center',
+
         fontFamily: 'AmongUs',
-    },
-    cajaStats: {
-        width: '100%',
-        backgroundColor: '#222222',
-        borderRadius: 12,
-        padding: 12,
-        marginBottom: 15,
+
     },
 
-    filaStat: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginVertical: 5,
-    },
+
 
     txtStatLabel: {
-        color: '#ffffff',
+
+        color: '#C7C6C6',
+
+        fontSize: 22,
+
+        marginBottom: 7,
+
+        textAlign: 'center',
+
         fontFamily: 'AmongUs',
-        fontSize: 18,
+
     },
 
-    txtStatVal: {
-        color: '#00ff00',
-        fontFamily: 'AmongUs',
-        fontSize: 20,
+
+
+    cajaStats: {
+
+        width: '100%',
+
+        backgroundColor: '#222222',
+
+        borderRadius: 12,
+
+        padding: 10,
+
+        marginVertical: 15,
+
     },
+
+
+
+    filaStat: {
+
+        flexDirection: 'row',
+
+        justifyContent: 'center',
+
+        marginVertical: 5,
+
+    },
+
+
 
     btnCerrar: {
+
         backgroundColor: '#ffffff',
-        paddingVertical: 8,
+
+        paddingVertical: 10,
+
         width: '100%',
+
         borderRadius: 8,
+
         alignItems: 'center',
+
     },
 
+
+
     txtBtnCerrar: {
+
         color: '#000000',
+
         fontFamily: 'AmongUs',
+
         fontSize: 18,
+
     },
 
     input: {
+
         borderWidth: 1,
+
         borderColor: '#777',
-        padding: 5,
-        margin: 5,
-        width: 250,
+
+        paddingHorizontal: 10,
+
+        width: '100%',
+
         height: 45,
+
         backgroundColor: 'white',
+
         fontFamily: 'AmongUs',
-        fontSize: 30,
+
+        fontSize: 20,
+
         borderRadius: 10,
+
+        color: '#000',
+
     },
+
 })
+

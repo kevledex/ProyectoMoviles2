@@ -1,21 +1,24 @@
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, View, TextInput, Button, Alert } from 'react-native'
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, View, TextInput, Button, Alert, Image } from 'react-native'
 import { globalStyles } from '../styles/EstilosGlobales'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../firebase/ConfigFirebase'
-
-
+//Huella Digital
+import * as LocalAuthentication from 'expo-local-authentication';
+//
+import * as SecureStore from 'expo-secure-store';
 
 export default function IniciarSesionScreen({ navigation }: any) {
     const [correo, setCorreo] = useState("")
     const [contrasenia, setContrasenia] = useState("")
 
     function login() {
-
         signInWithEmailAndPassword(auth, correo, contrasenia)
-            .then((userCredential) => {
+            .then(async (userCredential) => {
                 // Signed in 
                 const user = userCredential.user;
+                await SecureStore.setItemAsync("correo", correo);
+                await SecureStore.setItemAsync("contrasenia", contrasenia);
                 console.log(user)
                 navigation.navigate('Menu')
                 // ...
@@ -38,65 +41,119 @@ export default function IniciarSesionScreen({ navigation }: any) {
                     default:
                         Alert.alert("Error", "Verificar Credenciales")
                 }
-
             });
-
     }
 
 
     function restablecerContrasenia() {
         sendPasswordResetEmail(auth, correo)
             .then(() => {
-                // Password reset email sent!
-                // ..
                 Alert.alert("Mensaje", "Se envio un mensaje a tu correo")
             })
             .catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
-                // ..
-
             });
     }
 
+
+    async function sesionActiva(token: string) {
+        await SecureStore.setItemAsync("tokenAuth", token);
+    }
+
+    //Autenticación biométrica
+    async function autenticarHuella() {
+        const resultado = await LocalAuthentication.authenticateAsync({
+            promptMessage: "Ingresa tu huella digital",
+            disableDeviceFallback: true,
+        });
+
+        if (resultado.success) {
+            const correoGuardado = await SecureStore.getItemAsync("correo");
+            const contraseniaGuardada = await SecureStore.getItemAsync("contrasenia");
+
+            if (!correoGuardado || !contraseniaGuardada) {
+                Alert.alert("Error", "No existe una cuenta vinculada a la huella.");
+                return;
+            }
+
+            signInWithEmailAndPassword(auth, correoGuardado, contraseniaGuardada)
+                .then(() => {
+                    navigation.navigate("Menu");
+                })
+                .catch(() => {
+                    Alert.alert("Error", "No se pudo iniciar sesión.");
+                });
+        }
+    }
+
+    async function revisarBiometria() {
+        const token = await SecureStore.getItemAsync("tokenAuth");
+        if (!token) return;
+        autenticarHuella();
+    }
+
+
+    useEffect(() => {
+        revisarBiometria();
+    }, []);
+
+
     return (
-        <ImageBackground source={require('../assets/images/FondoLogin.png')} style={globalStyles.container}>
+        <ImageBackground
+            source={require('../assets/images/FondoLogin.png')}
+            style={globalStyles.container}
+        >
             <View style={styles.contenedorMenu}>
                 <Text style={styles.titulo}>INICIAR SESIÓN</Text>
 
-                <TextInput placeholder="Ingrese su correo"
+                <TextInput
+                    placeholder="Ingrese su correo"
                     style={styles.input}
-                    onChangeText={setCorreo} />
+                    onChangeText={setCorreo}
+                />
 
-                <TextInput placeholder="Ingrese la contraseña"
+                <TextInput
+                    placeholder="Ingrese la contraseña"
                     style={styles.input}
-                    onChangeText={setContrasenia} />
+                    onChangeText={setContrasenia}
+                />
 
-                
                 <View style={styles.contenedorAcciones}>
                     <View style={styles.filaBotones}>
-                        <TouchableOpacity style={styles.boton}
-                            onPress={login}>
-
+                        <TouchableOpacity
+                            style={styles.boton}
+                            onPress={login}
+                        >
                             <Text style={styles.txtMenu}>LOGIN</Text>
                         </TouchableOpacity>
-                </View>
+
+                        <TouchableOpacity onPress={autenticarHuella}>
+                            <Image
+                                source={require("../assets/images/huella-dactilar.png")}
+                                style={styles.huella}
+                            />
+                        </TouchableOpacity>
+                    </View>
 
                     <TouchableOpacity
                         style={styles.enlaceRegistro}
                         onPress={() => navigation.navigate("Registro")}
                     >
-                        <Text style={styles.txtRegistro}>¿NO TIENES CUENTA? REGÍSTRATE AQUÍ</Text>
+                        <Text style={styles.txtRegistro}>
+                            ¿NO TIENES CUENTA? REGÍSTRATE AQUÍ
+                        </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                         style={styles.enlaceRegistro}
-                        onPress={restablecerContrasenia} 
+                        onPress={restablecerContrasenia}
                     >
-                        <Text style={styles.txtRegistro}>Olvidaste la contraseña?</Text>
+                        <Text style={styles.txtRegistro}>
+                            ¿Olvidaste la contraseña?
+                        </Text>
                     </TouchableOpacity>
                 </View>
-
             </View>
         </ImageBackground>
     )
@@ -162,5 +219,14 @@ const styles = StyleSheet.create({
         fontFamily: 'AmongUs',
         textDecorationLine: 'underline',
         textAlign: 'center',
-    }
+    },
+
+    huella: {
+        width: 60,
+        height: 70,
+        marginVertical: 10,
+        borderWidth: 2,
+        borderColor: '#FFFFFF',
+        borderRadius: 12,
+    },
 })
