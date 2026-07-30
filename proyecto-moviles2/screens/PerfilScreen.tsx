@@ -12,6 +12,7 @@ export default function PerfilScreen({ navigation }: any) {
     const [nick, setNick] = useState("")
     const [puntos, setPuntos] = useState(0)
     const [avatarUrl, setAvatarUrl] = useState("")
+    const [uidUsuario, setUidUsuario] = useState("")
 
     function leerUsuario(uid: string) {
 
@@ -19,7 +20,6 @@ export default function PerfilScreen({ navigation }: any) {
         const usuarioRef = ref(db, 'usuarios/' + uid)
         onValue(usuarioRef, (snapshot) => {
             const datos = snapshot.val()
-
             if (datos) {
                 setCorreo(datos.correo)
                 setEdad(datos.edad)
@@ -27,7 +27,6 @@ export default function PerfilScreen({ navigation }: any) {
                 setPuntos(datos.puntos)
                 setAvatarUrl(datos.avatarUrl || "");
             }
-
         })
     }
 
@@ -35,12 +34,12 @@ export default function PerfilScreen({ navigation }: any) {
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 leerUsuario(user.uid)
+                setUidUsuario(user.uid)
             } else {
                 navigation.navigate('Login')
             }
         })
     }, [])
-
 
 
     function editarUsuario(uid: string) {
@@ -52,8 +51,8 @@ export default function PerfilScreen({ navigation }: any) {
                 nick: nick,
             }
         );
+        Alert.alert('Usuario Editado','Se edito los datos del usuario')
     }
-
 
     function cerrarSesion() {
         signOut(auth).then(() => {
@@ -62,7 +61,6 @@ export default function PerfilScreen({ navigation }: any) {
             Alert.alert("Error", "No se pudo cerrar sesión. Intente nuevamente.")
         })
     }
-
 
     return (
         <ImageBackground source={require('../assets/images/FondoPerfil.png')} style={styles.fondo}>
@@ -76,7 +74,9 @@ export default function PerfilScreen({ navigation }: any) {
                     edad={edad}
                     puntos={puntos}
                     image={avatarUrl}
-                    guardarCambios={editarUsuario}
+                    setNick={setNick}
+                    setEdad={setEdad}
+                    editar={() => editarUsuario(uidUsuario)}
                 />
             </View>
 
@@ -98,6 +98,8 @@ export default function PerfilScreen({ navigation }: any) {
     )
 }
 
+
+
 const styles = StyleSheet.create({
 
     fondo: {
@@ -109,9 +111,10 @@ const styles = StyleSheet.create({
         fontSize: 50,
         fontFamily: 'AmongUs',
         textAlign: 'center',
-        marginTop: 40,
+        marginTop: 20,
         marginBottom: 10,
     },
+
     contenedorCentro: {
         flex: 1,
         justifyContent: 'center',
@@ -135,7 +138,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#00000088',
     },
-    
+
     txtVolver: {
         color: '#ffffff',
         fontFamily: 'AmongUs',
@@ -160,5 +163,9 @@ const styles = StyleSheet.create({
         fontSize: 20,
     },
 
-    
-})
+
+
+
+
+}) 
+
