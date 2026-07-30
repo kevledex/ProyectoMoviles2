@@ -34,7 +34,8 @@ export default function SalaScreen({ navigation }: any) {
                     nick: currentUser.email?.split('@')[0],
                     vida: VIDA_INICIAL,
                     aciertos: 0,
-                    disparos: 0
+                    disparos: 0,
+                    tipo: 'normal'
                 }
             }
         }).then(() => {
@@ -76,7 +77,8 @@ export default function SalaScreen({ navigation }: any) {
             nick: currentUser.email?.split('@')[0],
             vida: VIDA_INICIAL,
             aciertos: 0,
-            disparos: 0
+            disparos: 0,
+            tipo: 'normal'
         }
 
         await update(ref(db), updates)
@@ -84,7 +86,7 @@ export default function SalaScreen({ navigation }: any) {
     }
 
     return (
-        <ImageBackground source={require('../assets/images/FondoSala2.png')} style={styles.fondo}>
+        <ImageBackground source={require('../assets/images/FondoSala.png')} style={styles.fondo}>
             <View style={styles.header}>
                 <Text style={styles.txtAmongGrande}>AMONG US</Text>
                 <Text style={styles.txtSalasPequeno}>SALAS</Text>
