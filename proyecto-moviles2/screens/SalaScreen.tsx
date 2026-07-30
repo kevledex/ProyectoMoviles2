@@ -86,7 +86,7 @@ export default function SalaScreen({ navigation }: any) {
     }
 
     return (
-        <ImageBackground source={require('../assets/images/FondoSala.png')} style={styles.fondo}>
+        <ImageBackground source={require('../assets/images/FondoSala2.png')} style={styles.fondo}>
             <View style={styles.header}>
                 <Text style={styles.txtAmongGrande}>AMONG US</Text>
                 <Text style={styles.txtSalasPequeno}>SALAS</Text>
@@ -117,7 +117,7 @@ export default function SalaScreen({ navigation }: any) {
                 </View>
             </View>
 
-            <TouchableOpacity style={styles.botonVolver} onPress={() => navigation.goBack()}>
+            <TouchableOpacity style={styles.botonVolver} onPress={() => navigation.navigate('Menu')}>
                 <Text style={styles.txtBotonPequeno}>VOLVER</Text>
             </TouchableOpacity>
         </ImageBackground>

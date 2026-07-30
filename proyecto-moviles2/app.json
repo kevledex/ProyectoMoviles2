@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "proyecto-moviles2",
-    "slug": "proyecto-moviles2",
+    "name": "AmongUs Shooter",
+    "slug": "AmongUs Shooter",
     "version": "1.0.0",
     "orientation": "landscape",
     "icon": "./assets/icon.png",
